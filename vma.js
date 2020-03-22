@@ -54,13 +54,13 @@ function calculateVMA(time) {
   time = (Math.round(time * 10)) / 10;
 
   var min = (time - (time % 60)) / 60;
-  if(min > 0){ result = result + pad(min) + " min "; }
+  if(min > 0){ result = result + pad(min) + " m "; }
 
   var sec = (Math.round((time % 60) * 10)) / 10;
   if(sec > 0){ result = result + pad(Math.round(sec)) + " s"; }
 
   var hour = Math.floor(min / 60) + " h" + " " + pad(min % 60);
-  if(min > 60){ result = hour + " min "; }
+  if(min > 60){ result = hour + " m "; }
 
   if(result.substr(0, 1) === '0'){ result = result.substr(1); }
 
@@ -95,7 +95,7 @@ function calculateVMASpeedData(mas, min, max, interval) {
     // append data on speed object
     var speed = Math.round(mas * i) / 100;
     var vma = calculateVMA(3600 / speed);
-    dataVMASpeed[0][label] = speed + ' km/h';
+    dataVMASpeed[0][label] = speed + ' k/h';
     dataVMASpeed[1][label] = vma;
     dataVMASpeed[2][label] = indexToType(i);
   }
