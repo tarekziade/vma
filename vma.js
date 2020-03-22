@@ -95,7 +95,7 @@ function calculateVMASpeedData(mas, min, max, interval) {
     // append data on speed object
     var speed = Math.round(mas * i) / 100;
     var vma = calculateVMA(3600 / speed);
-    dataVMASpeed[0][label] = speed + ' k/h';
+    dataVMASpeed[0][label] = speed;
     dataVMASpeed[1][label] = vma;
     dataVMASpeed[2][label] = indexToType(i);
   }
