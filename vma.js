@@ -54,13 +54,13 @@ function calculateVMA(time) {
   time = (Math.round(time * 10)) / 10;
 
   var min = (time - (time % 60)) / 60;
-  if(min > 0){ result = result + pad(min) + " m "; }
+  if(min > 0){ result = result + pad(min) + "m"; }
 
   var sec = (Math.round((time % 60) * 10)) / 10;
-  if(sec > 0){ result = result + pad(Math.round(sec)) + " s"; }
+  if(sec > 0){ result = result + pad(Math.round(sec)) + "s"; }
 
-  var hour = Math.floor(min / 60) + " h" + " " + pad(min % 60);
-  if(min > 60){ result = hour + " m "; }
+  var hour = Math.floor(min / 60) + "h" + "" + pad(min % 60);
+  if(min > 60){ result = hour + "m"; }
 
   if(result.substr(0, 1) === '0'){ result = result.substr(1); }
 
