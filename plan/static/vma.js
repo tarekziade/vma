@@ -158,7 +158,7 @@ function pad(num){
 }
 
 function validate() {
-  speed = jQuery("#speedValue").val();
+  var speed = getCookie('vma');
   VMASpeedDatatable.clear().draw();
   FractionneDatatable.clear().draw();
   init(speed);
@@ -221,11 +221,6 @@ function validate() {
   // 100 -
   FractionneDatatable.cells(15, 1).nodes()[0].style.cssText="background-color: #87FF8D";
 }
-
-var button = document.getElementById('submitSpeed');
-button.addEventListener('click', function() {
-  validate()
-});
 
 
 validate();

@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block body %}
+
+<p>
+Cette page propose des outils pour organiser vos entraînements. Tous les
+calculs sont basés sur la connaissance de votre VMA.
+</p>
+<div>
+<!-- todo validate vma value (, vs .) -->
+<form class="ui form"
+      id="vmaForm" onsubmit="return false;"
+      action="" method="post">
+  <div class="field">
+    <label>VMA en km/h</label>
+    <select class="ui search dropdown" id="speedValue">
+        <option value="">Choisissez votre VMA</option>
+        <option value="12">12</option>
+        <option value="12.5">12.5</option>
+        <option value="13">13</option>
+        <option value="13.5">13.5</option>
+        <option value="14">14</option>
+        <option value="14.5">14.5</option>
+        <option value="15">15</option>
+        <option value="15.5">15.5</option>
+        <option value="16">16</option>
+        <option value="16.5">16.5</option>
+        <option value="17">17</option>
+        <option value="17.5">17.5</option>
+        <option value="18">18</option>
+        <option value="18.5">18.5</option>
+        <option value="19">19</option>
+        <option value="19.5">19.5</option>
+        <option value="20">20</option>
+        <option value="20.5">20.5</option>
+        <option value="21">21</option>
+    </select>
+  </div>
+</form>
+</div>
+{% endblock %}
+
+
+{% block script %}
+<script src="/static/jquery.min.js" type="text/javascript"></script>
+<script src="/static/utils.js" type="text/javascript"></script>
+<script language="javascript">
+$(document).ready(function(){
+    $("#speedValue").change(function(){
+        var vma = $(this).children("option:selected").val();
+        setCookie('vma', vma);
+        $('#speedValue').val(vma);
+        $('#vma').text(vma);
+    });
+    var vma = getCookie('vma');
+    $('#speedValue').val(vma);
+});
+
+</script>
+{% endblock %}
