@@ -1,8 +1,41 @@
 {% extends "base.html" %}
 {% block body %}
 
-<h2 class="ui header">Plan d'entraînement</h2>
-<p>Explications</p>
+<h1 class="ui header">Générateur de plan d'entraînement</h1>
+<p>Vous pouvez modifier les paramètres ci-dessous pour re-génerer le plan.
+N'oubliez pas de régler votre vma sur la <a href="/">page d'accueil</a>
+</p>
+<form class="ui form"
+      id="planOptions"
+      onsubmit="return false;"
+      action="" method="post">
+  <div class="field">
+    <label>Course</label>
+    <select class="ui search dropdown" id="race">
+        <option value="7">5 km</option>
+        <option value="6">10 km</option>
+        <option value="5">Semi-marathon</option>
+        <option value="4">Marathon</option>
+    </select>
+  </div>
+  <div class="field">
+    <label>Nombre de semaines</label>
+    <select class="ui search dropdown" id="weeks">
+        <option value="8">8</option>
+        <option value="10">10</option>
+        <option value="12">12</option>
+    </select>
+  </div>
+  <div class="field">
+    <label>Nombre de séances par semaine</label>
+    <select class="ui search dropdown" id="spw">
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+    </select>
+  </div>
+</form>
+<h2 class="ui header" id="planTitle">Plan d'entraînement</h2>
 
 <div id="plan">
 </div>
@@ -13,7 +46,39 @@
 <script src="/static/jquery.datatables.js" type="text/javascript"></script>
 <script src="/static/plan.js" type="text/javascript"></script>
 <script language="javascript">
-  fillTable();
+
+function generate() {
+  var race = $("#race").children("option:selected").val();
+  var weeks = $("#weeks").children("option:selected").val();
+  var spw = $("#spw").children("option:selected").val();
+  setCookie('race', race);
+  setCookie('weeks', weeks);
+  setCookie('spw', spw);
+  fillTable(race, weeks, spw);
+}
+
+$(document).ready(function(){
+    $("#race").change(function(){
+        generate();
+    });
+
+    $("#weeks").change(function(){
+        generate();
+    });
+
+    $("#spw").change(function(){
+        generate();
+    });
+
+   var race = getCookie('race') || 6;
+   $("#race").val(race);
+   var weeks = getCookie('weeks') || 8;
+   $("#weeks").val(weeks);
+   var spw = getCookie('spw') || 5;
+   $("#spw").val(spw);
+   generate();
+});
+
 </script>
 {% endblock %}
 
