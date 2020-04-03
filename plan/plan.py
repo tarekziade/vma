@@ -50,14 +50,25 @@ class ExtensiveRepetitionType(Enum):
     _800M = 4
 
     def check_repetitions(self, race, repetitions):
-        if self == ExtensiveRepetitionType._400M:
-            return min(20, repetitions)
-        if self == ExtensiveRepetitionType._500M:
-            return min(14, repetitions)
-        if self == ExtensiveRepetitionType._600M:
-            return min(12, repetitions)
+        if race == SessionType.FIVE:
+            coefs = [12, 8, 4, 3]
+        elif race == SessionType.TEN:
+            coefs = [14, 8, 6, 4]
+        elif race == SessionType.HALF:
+            coefs = [18, 12, 10, 8]
+        else:
+            coefs = [20, 14, 12, 10]
+        coef = coefs[int(self) - 1]
+        return min(coef, repetitions)
 
-        return min(10, repetitions)
+    def __int__(self):
+        if self == ExtensiveRepetitionType._400M:
+            return 1
+        if self == ExtensiveRepetitionType._500M:
+            return 2
+        if self == ExtensiveRepetitionType._600M:
+            return 3
+        return 4
 
     def distance(self):
         if self == ExtensiveRepetitionType._400M:
@@ -87,24 +98,23 @@ class SpeRepetitionType(Enum):
     _10000M = 6
 
     @classmethod
-    def pick(cls, race, week_num):
+    def pick(cls, race, week_num, coef=1):
         if race == SessionType.FIVE:
-            week_num = min(week_num, 3)
-            repetitions = min(week_num * 2, 4)
+            week_num = min(week_num, 3 * coef)
+            repetitions = min(week_num * 2, 4 * coef)
         elif race == SessionType.TEN:
             max_volume = 10 * 0.8
-            week_num = min(week_num, 4)
-            repetitions = 3 + week_num
+            week_num = min(week_num, 4 * coef)
+            repetitions = (3 + week_num) * coef
             while repetitions * week_num > max_volume:
                 repetitions -= 1
         elif race == SessionType.HALF:
-            week_num = min(week_num, 5)
-            repetitions = min(week_num * 2, 8)
+            week_num = min(week_num, 5 * coef)
+            repetitions = min(week_num * 2, 8*coef)
         elif race == SessionType.MARATHON:
-            week_num = min(week_num, 6)
-            repetitions = min(week_num * 2, 10)
-
-        instance = cls(week_num)
+            week_num = min(week_num, 6 * coef * coef)
+            repetitions = min(week_num * 2, 10 * coef)
+        instance = cls(round(week_num))
         return instance, repetitions
 
     def distance(self):
@@ -173,6 +183,17 @@ class SessionType(Enum):
             return 5
         return -1
 
+    def intensity(self):
+        if self == SessionType.MARATHON:
+            return (80, 85)
+        if self == SessionType.HALF:
+            return (85, 90)
+        if self == SessionType.TEN:
+            return (90, 92)
+        if self == SessionType.FIVE:
+            return (92, 95)
+        return -1
+
     def __str__(self):
         if self == SessionType.RECOVERY:
             return "Récupération"
@@ -202,18 +223,36 @@ class Week:
         self.race = race
         self.num = num
         self.plan = plan
-        # typical week with 3 quality sessions.
-        self.sessions = [
-            self._session(SessionType.INTENSIVE_INTERVALS),
-            self._session(self._extensive_or_spe()),
-            self._session(SessionType.LONG_RUN),
-        ]
-        # we add endurance runs
-        if self.spw == 4:
-            self.sessions.insert(1, self._session(SessionType.ENDURANCE))
-        elif self.spw == 5:
-            self.sessions.insert(1, self._session(SessionType.ENDURANCE))
-            self.sessions.insert(3, self._session(SessionType.ENDURANCE))
+        self.race_week = type == WeekType.SPECIFIC and num == plan.total_weeks
+        self.taper_week = type == WeekType.SPECIFIC and num == plan.total_weeks - 1
+        self.regular_week = not self.race_week and not self.taper_week
+        if self.race_week:
+            coef = 0.5
+        elif self.taper_week:
+            coef = 0.6
+        else:
+            coef = 1.0
+
+        if self.race_week:
+            self.sessions = [
+                self._session(SessionType.INTENSIVE_INTERVALS, coef),
+                self._session(SessionType.ENDURANCE, coef),
+                self._session(self._extensive_or_spe(), coef),
+            ]
+        else:
+            self.sessions = [
+                self._session(SessionType.INTENSIVE_INTERVALS, coef),
+                self._session(self._extensive_or_spe(), coef),
+                self._session(SessionType.LONG_RUN, coef),
+            ]
+            if self.spw == 4:
+                self.sessions.insert(1, self._session(SessionType.ENDURANCE,
+                    coef))
+            elif self.spw == 5:
+                self.sessions.insert(1, self._session(SessionType.ENDURANCE,
+                    coef))
+                self.sessions.insert(3, self._session(SessionType.ENDURANCE,
+                    coef))
 
         for num, session in enumerate(self.sessions):
             session.num = num + 1
@@ -287,8 +326,8 @@ class Week:
             return SessionType.EXTENSIVE_INTERVALS
         return self.race
 
-    def _session(self, type):
-        return Session(self, type)
+    def _session(self, type, coef=1):
+        return Session(self, type, coef)
 
 
 def seconds_to_str(seconds):
@@ -338,6 +377,17 @@ class Continuous:
         self.speed_high = vma_to_speed(vma, intensity[1])
         speed_avg = (self.speed_low + self.speed_high) / 2.0
         self.distance = self.duration / 60 * speed_avg
+
+    @classmethod
+    def for_race(cls, session, race):
+        intensity = race.intensity()
+        distance = race.distance()
+        vma = session.week.plan.vma
+        speed_low = vma_to_speed(vma, intensity[0])
+        speed_high = vma_to_speed(vma, intensity[1])
+        speed_avg = (speed_low + speed_high) / 2.0
+        duration = (distance / speed_avg * 60)
+        return cls(session, duration, intensity)
 
     def __str__(self):
         return "%s (entre %s et %s km/h)" % (
@@ -412,7 +462,7 @@ class Interval:
 
 
 class Session:
-    def __init__(self, week, type):
+    def __init__(self, week, type, coef=1.0):
         self.type = type
         self.race = week.race
         self.week = week
@@ -429,6 +479,7 @@ class Session:
             if type == SessionType.LONG_RUN:
                 self.base_time *= 1.6
 
+            self.base_time *= coef
             self.core = Continuous(
                 self, self.base_time + ((week.num - 1) * self.base_time * 0.1)
             )
@@ -436,6 +487,23 @@ class Session:
             self.cool_down = None
             self.duration = self.core.duration
             self.distance = self.core.distance
+        elif self.week.race_week and type == self.race:
+            self.base_time = 0
+            if self.race in (SessionType.FIVE, SessionType.TEN):
+                warmup_time = 15
+            elif self.race == SessionType.HALF:
+                warmup_time = 20
+            else:
+                warmup_time = 25
+            self.warmup = Continuous(self, warmup_time, WARMUP)
+            self.cool_down = None
+            self.core = Continuous.for_race(self, self.race)
+            self.duration = (
+                self.warmup.duration + self.core.duration
+            )
+            self.distance = (
+                self.warmup.distance + self.core.distance
+            )
         else:
             self.base_time = 0
             if self.race in (SessionType.FIVE, SessionType.TEN):
@@ -446,7 +514,7 @@ class Session:
                 warmup_time = 25
             self.warmup = Continuous(self, warmup_time, WARMUP)
             self.cool_down = Continuous(self, 15)
-            self.core = self._build_interval()
+            self.core = self._build_interval(coef)
             self.duration = (
                 self.warmup.duration + self.core.duration + self.cool_down.duration
             )
@@ -461,20 +529,23 @@ class Session:
         # XXX inclue tapering at the end
         return base + ((self.week.num - 1) * base * 0.1)
 
-    def _build_interval(self):
+    def _build_interval(self, coef):
         # XXX definir des max de repetition et de distance
+        # sur le 10 ca enchine 10x200, 11x300, 13x200, 14x300
+        #
         if self.type == SessionType.INTENSIVE_INTERVALS:
             type = self.week.num % len(IntensiveRepetitionType) + 1
             type = IntensiveRepetitionType(type)
-            repetitions = self._graduation(10)
+            repetitions = self._graduation(10 * coef)
         elif self.type == SessionType.EXTENSIVE_INTERVALS:
             type = self.week.num % len(ExtensiveRepetitionType) + 1
             type = ExtensiveRepetitionType(type)
-            repetitions = self._graduation(6)
+            repetitions = self._graduation(6 * coef)
         else:
             # spe
             type, repetitions = SpeRepetitionType.pick(
-                self.race, self.week.num - self.week.plan.gen_weeks
+                self.race, self.week.num - self.week.plan.gen_weeks,
+                coef
             )
 
         return Interval(self, repetitions, type)
@@ -508,13 +579,25 @@ class Session:
             res["description"] = "Effort continu de " + str(self.core)
             return res
         res["warmup"] = self.warmup.json()
-        res["cool_down"] = self.cool_down.json()
+        res["cool_down"] = self.cool_down is not None and self.cool_down.json() or {}
         res["core"] = self.core.json()
-        res["description"] = self._to_html(
-            "Echauffement %s" % self.warmup,
-            "%s" % self.core,
-            "Retour au calme %s" % self.cool_down,
-        )
+        if self.cool_down is not None:
+            res["description"] = self._to_html(
+                "Echauffement %s" % self.warmup,
+                "%s" % self.core,
+                "Retour au calme %s" % self.cool_down,
+            )
+        elif self.week.race_week and self.type == self.race:
+
+            res["description"] = self._to_html(
+                "Echauffement %s" % self.warmup,
+                "Course!!! %s" % self.core
+            )
+        else:
+            res["description"] = self._to_html(
+                "Echauffement %s" % self.warmup,
+                "%s" % self.core
+            )
         return res
 
 
@@ -560,7 +643,7 @@ class TrainingPlan:
             raise ValueError("5 séances max")
 
         self.spw = spw
-        self.total_weeeks = weeks
+        self.total_weeks = weeks
         # we cut the training in 2 halves
         self.gen_weeks, rest = divmod(weeks, 2)
         self.spe_weeks = weeks - self.gen_weeks + rest
