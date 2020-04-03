@@ -22,6 +22,10 @@
         Plan d'entraînement
       </a>
 
+      <a href="/guide" class="header item">
+        Guide
+      </a>
+
       <a href="#" class="header item">
         VMA de <span style="margin-left: 3px; margin-right: 3px" id="vma"></span> km/h
       </a>
@@ -38,13 +42,22 @@
 </div>
 
 <div class="ui inverted vertical footer segment">
-    <div class="ui center aligned container">
+  <div class="ui center aligned container">
+    <div class="ui horizontal inverted small divided link list">
+      <a class="item" href="https://ziade.org/resume.html">Logiciel créé par Tarek Ziadé</a>
+      <a class="item" href="https://bottlepy.org">Codé avec Python, Javascript et Bottle.py</a>
+      <a class="item" href="https://semantic-ui.com">Mise en page avec Semantic UI</a>
+      <a class="item" href="https://github.com/tarekziade/vma/">Open Source</a>
     </div>
+  </div>
 </div>
 
 
 <script src="/static/jquery.min.js" type="text/javascript"></script>
 <script src="/static/utils.js" type="text/javascript"></script>
+<script src="/static/semantic.min.js" type="text/javascript"></script>
+
+
 <script language="javascript">
   var vma = getCookie('vma');
   $('#vma').text(vma);
@@ -53,5 +66,5 @@
 {% block script %}{% endblock %}
 
 
-</body>
+    </body>
 </html>

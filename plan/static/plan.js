@@ -17,7 +17,7 @@ function fillTable(race, weeks, spw) {
     $.each( plan.weeks, function(key, week) {
 
         var div = $('#plan').append('<div id="week-' + week.num + '"></div>');
-        var title = div.append('<h3 class="ui header"> Semaine ' + week.num + ' / ' + week.type + '</h3>');
+        var title = div.append('<h3 class="ui header"><i class="arrow alternate circle right outline icon"></i>Semaine ' + week.num + ' | ' + week.type + '</h3>');
         var description = div.append('<p>' + week.description + '</p>')
         var table = div.append("<table class='ui celled table dataTable no-footer' id='tweek-" + week.num + "'></table>");
 

@@ -1,10 +1,11 @@
 from bottle import response
 from json import dumps
 from bottle import route, run, request, template
-from plan import plan, SessionType
+from plan.generator import plan, SessionType
 import json
 import os
 from bottle import jinja2_view, route, static_file
+import bottle
 
 
 here = os.path.dirname(__file__)
@@ -30,6 +31,12 @@ def _plan():
     return {"plan": plan().json()}
 
 
+@route("/guide")
+@jinja2_view("guide.html", template_lookup=[templates])
+def guide():
+    return {}
+
+
 @route("/")
 @jinja2_view("index.html", template_lookup=[templates])
 def index():
@@ -47,4 +54,7 @@ def server_static(filepath):
     return static_file(filepath, root=static)
 
 
-run(host="localhost", port=8080)
+if __name__ == '__main__':
+    run(host="localhost", port=8787)
+else:
+    app = application = bottle.default_app()
