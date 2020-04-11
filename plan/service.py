@@ -1,10 +1,8 @@
-from bottle import response
-from json import dumps
-from bottle import route, run, request, template
+from bottle import route, run, request, response
 from plan.generator import plan, SessionType
 import json
 import os
-from bottle import jinja2_view, route, static_file
+from bottle import jinja2_view, static_file
 import bottle
 
 
@@ -54,7 +52,7 @@ def server_static(filepath):
     return static_file(filepath, root=static)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     run(host="localhost", port=8787)
 else:
     app = application = bottle.default_app()
