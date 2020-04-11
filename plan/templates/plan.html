@@ -34,6 +34,14 @@ N'oubliez pas de régler votre vma sur la <a href="/">page d'accueil</a>
         <option value="5">5</option>
     </select>
   </div>
+  <div class="field">
+    <label>Intensité</label>
+    <select class="ui search dropdown" id="level">
+        <option value="1">Facile</option>
+        <option value="2">Normale</option>
+        <option value="3">Difficile</option>
+    </select>
+  </div>
 </form>
 <h2 class="ui header" id="planTitle">Plan d'entraînement</h2>
 
@@ -51,10 +59,12 @@ function generate() {
   var race = $("#race").children("option:selected").val();
   var weeks = $("#weeks").children("option:selected").val();
   var spw = $("#spw").children("option:selected").val();
+  var level = $("#level").children("option:selected").val();
   setCookie('race', race);
   setCookie('weeks', weeks);
   setCookie('spw', spw);
-  fillTable(race, weeks, spw);
+  setCookie('level', level);
+  fillTable(race, weeks, spw, level);
 }
 
 $(document).ready(function(){
@@ -70,12 +80,19 @@ $(document).ready(function(){
         generate();
     });
 
+    $("#level").change(function(){
+        generate();
+    });
+
    var race = getCookie('race') || 6;
    $("#race").val(race);
    var weeks = getCookie('weeks') || 8;
    $("#weeks").val(weeks);
    var spw = getCookie('spw') || 5;
    $("#spw").val(spw);
+   var level = getCookie('level') || 1;
+   $("#level").val(level);
+
    generate();
 });
 

@@ -1,5 +1,5 @@
 from bottle import route, run, request, response
-from plan.generator import plan, SessionType
+from plan.generator import plan, SessionType, NORMAL
 import json
 import os
 from bottle import jinja2_view, static_file
@@ -17,8 +17,12 @@ def api_plan():
     weeks = int(request.params.get("weeks", 8))
     race = SessionType(int(request.params.get("race", SessionType.TEN)))
     spw = int(request.params.get("spw", 5))
-
-    res = {"plan": plan(vma=float(vma), race=race, weeks=weeks, spw=spw).json()}
+    level = int(request.params.get("level", NORMAL))
+    res = {
+        "plan": plan(
+            vma=float(vma), race=race, weeks=weeks, spw=spw, level=level
+        ).json()
+    }
     response.content_type = "application/json"
     return json.dumps(res)
 
@@ -26,7 +30,7 @@ def api_plan():
 @route("/plan")
 @jinja2_view("plan.html", template_lookup=[templates])
 def _plan():
-    return {"plan": plan().json()}
+    return {}
 
 
 @route("/guide")

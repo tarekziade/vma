@@ -2,7 +2,7 @@
 from enum import Enum
 import datetime as dt
 
-from plan.interval import pick_repetition
+from plan.interval import pick_repetition, NORMAL
 from plan.session import SessionType, WeekType
 
 
@@ -157,7 +157,8 @@ ENDURANCE = (65, 75)
 
 
 def _r(duration, base=5):
-    return base * round(duration/base)
+    return base * round(duration / base)
+
 
 class Continuous:
     def __init__(self, session, duration, intensity=ENDURANCE):
@@ -210,8 +211,7 @@ class Interval:
             + self.type.recovery_duration / 60 * repetitions
         )
         self.distance = (
-            self.type.distance * repetitions
-            + self.type.recovery_distance * repetitions
+            self.type.distance * repetitions + self.type.recovery_distance * repetitions
         )
 
     def __str__(self):
@@ -240,6 +240,7 @@ class Session:
         self.week = week
         self.num = 0
         self.vma = week.plan.vma
+        self.level = week.plan.level
 
         if type in (SessionType.ENDURANCE, SessionType.LONG_RUN):
             if self.race in (SessionType.FIVE, SessionType.TEN):
@@ -298,9 +299,15 @@ class Session:
         return base + ((self.week.num - 1) * base * 0.1)
 
     def _build_interval(self, coef):
-        type, repetitions = pick_repetition(self.type, self.race,
-                self.week.num, self.vma, self.week.type,
-                self.week.plan.total_weeks)
+        type, repetitions = pick_repetition(
+            self.type,
+            self.race,
+            self.week.num,
+            self.vma,
+            self.week.type,
+            self.week.plan.total_weeks,
+            self.level,
+        )
         return Interval(self, repetitions, type)
 
     def __str__(self):
@@ -353,9 +360,10 @@ class Session:
 
 
 class TrainingPlan:
-    def __init__(self, race, vma):
+    def __init__(self, race, vma, level):
         self.race = race
         self.vma = vma
+        self.level = level
         self.spw = None
         self.gen_weeks = None
         self.spe_weeks = None
@@ -407,8 +415,8 @@ class TrainingPlan:
             self.weeks.append(Week(self, week_num, WeekType.SPECIFIC, spw, self.race))
 
 
-def plan(race=SessionType.TEN, vma=18.5, weeks=8, spw=5):
-    training = TrainingPlan(race, vma)
+def plan(race=SessionType.TEN, vma=18.5, weeks=8, spw=5, level=NORMAL):
+    training = TrainingPlan(race, vma, level)
     training.build(weeks, spw)
     return training
 

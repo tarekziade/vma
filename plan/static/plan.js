@@ -1,13 +1,12 @@
 
 var dataPlan;
 
-function fillTable(race, weeks, spw) {
+function fillTable(race, weeks, spw, level) {
     var speed = getCookie('vma');
     $("#plan").empty();
 
     $.getJSON("/api/plan?vma=" + speed + "&race=" + race + "&weeks=" + weeks +
-         "&spw=" + spw,
-
+         "&spw=" + spw + "&level=" + level,
         function( data ) {
     var plan = data.plan;
 
