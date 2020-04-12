@@ -1,10 +1,32 @@
 {% extends "base.html" %}
 {% block body %}
 
-<h1 class="ui header"><i class="calendar outline icon"></i> Générateur de plan d'entraînement (PROTOTYPE)</h1>
-<p>Vous pouvez modifier les paramètres ci-dessous pour re-génerer le plan.
+
+<div class="ui segment right floated noborder">
+<span class="ui orange right ribbon label">Prototype</span>
+</div>
+
+<h1 class="ui header">
+  <i class="settings icon"></i>
+  <div class="content">
+    Générateur de plan
+    <div class="sub header">5K, 10K, semi et Marathon.</div>
+  </div>
+</h1>
+
+
+<div class="ui message">
+  <div class="header">
+    Mode d'emploi
+  </div>
+<p>Cette page vous permet de générer un plan d'entraînement
+pour la plupart des distances de compétition route.
+Vous pouvez modifier les paramètres ci-dessous pour 
+re-génerer le plan.
 N'oubliez pas de régler votre vma sur la <a href="/">page d'accueil</a>
+</div>
 </p>
+
 <form class="ui form"
       id="planOptions"
       onsubmit="return false;"
@@ -43,6 +65,9 @@ N'oubliez pas de régler votre vma sur la <a href="/">page d'accueil</a>
     </select>
   </div>
 </form>
+
+<div class="ui divider"></div>
+
 <h2 class="ui header" id="planTitle">Plan d'entraînement</h2>
 
 <div id="plan">

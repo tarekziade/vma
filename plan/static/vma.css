@@ -1,5 +1,14 @@
 body {
-    background-color: #FFFFFF;
+ background-color: #FFFFFF;
+ text-align: justify;
+}
+
+div.noborder {
+border: none !important; 
+box-shadow: none !important; 
+-webkit-box-shadow: none !important; 
+border-radius: none !important;
+
 }
 
 .ui.menu .item img.logo {

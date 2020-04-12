@@ -5,40 +5,45 @@
   <title>Outils pour l'entraînement en course à pied</title>
   <link rel="stylesheet" href="/static/semantic.min.css" />
   <link rel="stylesheet" href="/static/vma.css" />
+  {% block head %}{% endblock %}
 </head>
 <body>
 
 <div class="ui fixed inverted menu">
-    <div class="ui container">
-      <a href="/" class="header item">
-        Outils foule.es
-      </a>
-
-      <a href="/vma" class="header item">
-        Temps et allures
-      </a>
-
-      <a href="/plan" class="header item">
-        Plan d'entraînement
-      </a>
-
-      <a href="/guide" class="header item">
-        Guide
-      </a>
-
-      <a href="#" class="header item">
-        VMA de <span style="margin-left: 3px; margin-right: 3px" id="vma"></span> km/h
-      </a>
-
-      <a href="https://foule.es" class="header right item">
-        Blog foule.es
-      </a>
-
-    </div>
+  <div class="ui container">
+    <a href="/" class="header item">
+      Outils foule.es
+    </a>
+    <a href="/vma" class="header item">
+      Temps et allures
+    </a>
+    <a href="/plan" class="header item">
+      Plan d'entraînement
+    </a>
+    <a href="/guide" class="header item">
+      Guide
+    </a>
+    <a href="#" class="header item">
+      VMA de <span style="margin-left: 3px; margin-right: 3px" id="vma"></span> km/h
+    </a>
+    <a href="https://foule.es" class="header right item">
+      Blog foule.es
+    </a>
+  </div>
 </div>
 
 <div class="ui main text container">
-{% block body %}{% endblock %}
+  <div class="ui vertical segment">
+  <div class="ui right rail" style="">
+   <div class="ui sticky">
+     <p style="min-height: 20px"></p>
+     {% block sticky %}{% endblock %}
+  </div>
+  </div>
+  <div id="content">
+  {% block body %}{% endblock %}
+  </div>
+  </div>
 </div>
 
 <div class="ui inverted vertical footer segment">
@@ -52,19 +57,19 @@
   </div>
 </div>
 
-
 <script src="/static/jquery.min.js" type="text/javascript"></script>
 <script src="/static/utils.js" type="text/javascript"></script>
 <script src="/static/semantic.min.js" type="text/javascript"></script>
-
-
 <script language="javascript">
   var vma = getCookie('vma');
   $('#vma').text(vma);
+  $('.ui.sticky')
+        .sticky({
+          context: '#content',
+          pushing: true
+        })
+      ;
 </script>
-
 {% block script %}{% endblock %}
-
-
-    </body>
+</body>
 </html>

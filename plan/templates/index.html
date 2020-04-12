@@ -1,5 +1,13 @@
 {% extends "base.html" %}
+
 {% block body %}
+<h1 class="ui header">
+  <i class="users icon"></i>
+  <div class="content">
+    Outils pour la course à pied
+    <div class="sub header">par Tarek Ziadé</div>
+  </div>
+</h1>
 
 <p>
 Cette page propose des outils pour organiser vos entraînements. Tous les
@@ -38,7 +46,7 @@ calculs sont basés sur la connaissance de votre VMA.
   </div>
 </form>
 </div>
-<div class="ui message">
+<div id="gprd" class="ui message hidden">
   <i class="close icon"></i>
   <div class="header">
     GPRD
@@ -61,12 +69,25 @@ $(document).ready(function(){
     var vma = getCookie('vma');
     $('#speedValue').val(vma);
 
+    var gprd = getCookie('gprd');
+
+    if (!gprd) {
+      let gprdMessage = $('#gprd');
+      if (gprdMessage.hasClass('hidden')){
+        gprdMessage.removeClass('hidden')
+        gprdMessage.addClass('visible');
+      } else {
+        gprdMessage.removeClass('visible')
+        gprdMessage.addClass('hidden');   
+      }
+    }
+
   $('.message .close')
   .on('click', function() {
+    setCookie('gprd', "1");
     $(this)
       .closest('.message')
-      .transition('fade')
-    ;
+      .transition('fade');
   })
 ;
 });

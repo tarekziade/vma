@@ -1,15 +1,165 @@
 {% extends "base.html" %}
-{% block body %}
 
+{% block head %}
+<style>
+h2.ui.header {
+}
+</style>
+{% endblock %}
+
+{% block sticky %}
+<h3 class="ui header">Table des matières</h3>
+<div class="content menu">
+<div class="item">
+  <a href="#ecoute">A l’écoute de son corps</a>
+</div>
+<div class="item">
+  <a href="#adaptation">Adaptation de l’organisme</a>
+</div>
+<div class="item"> 
+  <a href="#saison">Organisation d’une saison</a>
+</div>
+<div class="item">
+  <a href="#definitions">Définitions</a>
+</div>
+<div class="item">
+  <a href="#vmacalc" >Comment calculer sa VMA?</a>
+</div>
+<div class="item">
+ <a href="#seance">La séance-type</a>
+</div>
+<div class="item">
+  <a href="#renfo">Le renforcement musculaire</q>
+</div>
+<div class="item">
+  <a href="#croise">L'entraînement croisé</a>
+</div>
+<div class="item">
+  <a href="#etirements">Les étirements</a>
+</div>
+</div>
+
+{% endblock %}
+
+{% block body %}
 <h1 class="ui header">
-<i class="question circle outline icon"></i>
-Guide d'utilisation
+  <i class="question circle outline icon"></i>
+  <div class="content">
+    Guide d'utilisation
+    <div class="sub header">Définitions et fonctionnement du site</div>
+  </div>
 </h1>
 
-<p>Cette page fourni quelques explications et définitions des termes utilisés
-dans les outils.</p>
+<h2 class="ui header" id="ecoute">A l’écoute de son corps</h2>
 
-<h2 class="ui header">VO2 max</h2>
+<p>
+Avant de suivre chacun des plans de foule.es, consultez votre médecin pour
+vérifier que vous êtes apte à effectuer des exercices fractionnés intenses. Une
+anomalie cardiaque ou des difficultés respiratoires peuvent ne pas être
+compatible avec ce genre d’activité physique.
+</p>
+
+<p>
+Soyez à l’écoute du corps tout au long de la saison. Il est normal de se sentir
+fatigué dans les semaines les plus intenses de chaque plan, mais si vous vous
+blessez, tombez malade ou vous vous sentez vraiment trop fatigué, n’hésitez pas
+à adapter ou même stopper la course pendant un moment.
+</p>
+
+<p>
+Soyez également vigilants au risque de sur-entraînement, chaque athlète
+encaisse les charges d’entraînement différemment en fonction de son mode de vie
+et de ses capacités physiques.
+</p>
+
+<p>Les signes classiques de sur-entraînement sont:</p>
+<ul>
+ <li>une baisse des performances</li>
+ <li>de la difficulté à s’endormir</li>
+ <li>de l’irritabilité</li>
+</ul>
+
+<h2 class="ui header" id="adaptation">Adaptation de l’organisme à l’effort</h2>
+
+<p>
+Les séances de chaque plan sont organisées pour adapter le corps à courir sur
+une allure et une distance donnée. Cette adaptation se fait grâce à une
+succession de charge de travail dont l’intensité et le rythme sont calculées de
+manière à optimiser l’effet de surcompensation. Mais ce principe ne peut pas
+fonctionner si les phases moins intenses ne sont pas respectées.
+</p>
+<div class="ui message">
+Le repos fait partie intégrante de la préparation et ne doit jamais être négligé.
+</div>
+
+<p>
+Une semaine-type d’entrainement alterne les séances en endurance fondamentale
+et les séances qualitatives, et un plan d’entraînement va progressivement
+augmenter le volume et l’intensité pour mettre l’athlète en condition.
+</p>
+<p>
+Sur le même principe que le repos, une séance en endurance ne doit pas se
+transformer en séance intense, car la séance fractionné qui suivra sera de
+moins bonne qualité. Forcez-vous à bien respecter les allures données en
+endurance fondamentale ou en échauffement.
+</p>
+<p>
+Il faut aussi bien respecter les périodes de régénération après chaque course,
+ainsi qu'une coupure annuelle. Vous ne pouvez pas être au top toute
+l’année, votre corps et votre esprit ont tous les deux besoin de coupures pour
+éviter les blessures et la lassitude.
+</p>
+
+<h2 class="ui header" id="saison">Organisation d’une saison</h2>
+
+<p>
+La saison d’un coureur hors-stade en France est en générale rythmée par deux
+temps forts:  de début Mars à fin Mai et de début Septembre à fin Novembre.
+</p>
+
+<p>
+A ces deux périodes s’ajoutent pour les plus courageux les cross en Janvier /
+Février et les trails et autres petites courses hors saison (été et hiver)
+</p>
+
+<p>
+Sur une saison complète il est important de ne pas se donner trop d’objectifs
+majeurs. Un objectif majeur est une course sur laquelle l’athlète souhaite
+faire son meilleur temps possible, en suivant une préparation spécifique
+dédiée, après une préparation générale.
+</p>
+
+<p>
+Il est conseillé par exemple de limiter le nombre de marathons à deux par an
+maximum, le nombre de semi à trois, et le nombre de dix à quatre ou cinq. Pour
+vraiment se focaliser sur la performance, ne pas hésiter à faire beaucoup moins
+de courses compétitives, quitte à se faire plaisir sur des petites courses
+annexes où la recherche performance est secondaire. Il est risqué de vouloir
+enchaîner à tout prix les performances tous les week-end.
+</p>
+
+<p>
+Le challenge de l’étoile en Côte D’Or est un bon exemple d’un calendrier de
+courses délicat. Il est impossible d’enchaîner les préparations car les courses
+s’enchaînent presque chaque week-end à la rentrée. Dans ce cas particulier, les
+courses font office d’entraînement pour la prochaine course, et les semaines
+d’entraînement sont très allégées (quelques footings et une seul séance
+qualitative)
+</p>
+
+<p>
+Quelques exemples de saisons bien remplies:
+</p>
+<ul>
+  <li>Deux 10km perf, un semi perf, un marathon perf et quelques trails pour le plaisir</li>
+  <li>Deux marathons perf avec un semi préparatoire et deux 10 plaisir</li>
+  <li>Deux semi perf, un 10km perf, trois 10km plaisir.</li>
+</ul>
+
+
+<h2 class="ui header" id="definitions">Définitions</h2>
+
+<h3 class="ui header">VO2 max</h3>
 <p>Le VO2 max, ou Volume Maximum d'oxygène est la quantité maximum d'oxygène
 que le corps est capable de transmettre aux muscles pendant l'effort. 
 Lorsque l'on atteint ce seuil, le corps ne peut plus suivre et se retrouve
@@ -33,7 +183,7 @@ hommes et baisse avec l'âge. Voici quelques valeures:
   <li>Sédentaire: 30-50</li>
 </ul>
 
-<h2 class="ui header">VMA</h2>
+<h3 class="ui header">VMA</h3>
 <p>La VMA est la Vitesse Maximale Aérobie. C'est la vitesse atteinte lorsque l'on 
 atteint le VO2 max. Cette valeur, exprimée en km/h, 
 permet de définir la capacité de chaque coureur et est utilisée pour préparer des
@@ -55,19 +205,112 @@ dans des zones cibles d'intensités:
 <li>Footing de récupération: < 65%</li>
 </ul>
 
-<h2 class="ui header">VMA</h2>
-<p></p>
 
-<h2 class="ui header">Fractionné intensif</h2>
-<p>XXX</p>
+<h3 class="ui header">Fractionnés</h3>
 
+<p>Les fractionnés sont des séances où l'on alterne des efforts brefs
+à haute intensité et des <i>contre-efforts</i> de récupération. L'interêt
+de ces séances est de permettre de travailler à haute intensité 
+sur une durée plus longue que si l'exercice était fait d'une traite.
+</p>
+<p>Quelques exemples de séances de fractionné:</p>
+<ul>
+  <li>10x200M avec 30 seconde de contre-effort</li>
+  <li>10x30"-30" (trente secondes rapide, trente secondes de récupération)</li>
+  <li>4x1000M avec 2 minutes de récupération entre chaque</li>
+</ul>
 
-<h2 class="ui header">Fractionné extensif</h2>
-<p>XXX</p>
+<p>
+L’effort lors des fractionnés est effectué entre 95% et 105% de la VMA. 
+Le contre-effort entre chaque fractionné est à 60% de la VMA, et dure
+en générale moins longtemps que l'effort. On parle de
+<strong>fractionné intensif</strong> si le temps de chaque effort est inférieur
+à <strong>1m10s</strong> et de <strong>fractionné extensif</strong> 
+si le temps est supérieur à <strong>1m10s</strong>.
 
+<h2 id="vmacalc" class="ui header">Comment calculer sa VMA?</h2>
+<p>Il existe plusieurs protocoles pour calculer sa VMA</p>
+<ul>
+  <li>Cooper: course continue de 12mn à allure VMA</li>
+  <li>demi-cooper: course continue de 6mn à allur VMA</li>
+  <li>Gacon: test intermittent en stade, sous forme d'allers-retours</li>
+  <li>VAMEVAL: test continu en stade, accélération progressive</li>
+  <li>VAMEVAL tapis: adaptation de VAMEVAL sur un tapis roulant</li>
+</ul>
 
+<p>Les tests Cooper ne sont pas vraiment utiles pour calculer sa VMA
+car ils sont basés sur l'idée que l'athlète la connait déjà, et 
+va essayer de la tenir pendant 6 ou 12 minutes</p>
 
+<p>Si vous ne la connaissez pas, Cooper n'a aucun interêt, si ce 
+n'est de l'utiliser dans le cadre d'un contrôle de VMA lors d'un test
+TMI (Train Maximum Imposé) qui peut être réalisé une semaine après un 
+test VMA pour vérifier que cette dernière est correcte</p>
 
+<p>Pour un TMI, l'athlète suit un vélo à la vitesse VMA et doit tenir
+6 minutes, pour valider sa VMA. S'il s'arrête avant, la VMA a été
+sur-évaluée. S'il s'arrête après, sous-évaluée.</p>
+
+<p>Le test Gacon est un test intermittent, où l'on alterne 45 secondes
+de course, pour 15 secondes de repos. Les résultats fournissent
+en général une VMA sur-évaluée, surtout pour les athètes qui ont 
+l'habitude de faire du fractionné</p>
+
+<p>Le test VAMEVAL est en général le plus fiable. Il est réalisé sur 
+un stade de 400M avec des plots tous les 20M. Vous pouvez aussi le
+faire sur tapis de course. Plus d'explications sur le protocole, 
+sur <a href="http://www.arscorpus.com/tests_vameval.php">ce site</a>
+</p>
+
+<h2 id="seance" class="ui header">La séance-type</h2>
+<p>
+Chaque séance est organisée en 4 étapes:
+</p>
+
+<ul>
+  <li>Echauffement: 15 à 20 minutes</li> 
+  <li>PPG (Préparation physique générale)
+  <ul>
+    <li>montée de genoux</li>
+    <li>talons-fesses</li>
+    <li>jambes tendues</li>
+    <li>foulées à la russe</li>
+    <li>3 accélérations</li>
+  </ul>
+  </li>
+  <li>Corps de la séance</li>
+  <li>Retour au calme avec un footing de 10 à 15 mn.</li>
+</ul>
+
+<p>
+Voici les différents types de séance:
+</p>
+<ul>
+ <li>Endurance Fondamentale: footings à allure modérée.</li>
+ <li>Allure spécifique: sorties à allur cible course.</li>
+ <li>Sortie Longue: comme les footings, mais plus longues</li>
+ <li>Fractionné Intensif: fractionnées de moins de 1mn25</li>
+ <li>Fractionné Extensif: fractionnées de plus de 1mn25</li>
+</ul>
+<p>
+Les sorties en endurance fondamentale et sorties longues peuvent être faites
+sans échauffement et retour au calme.
+</p>
+
+<h2 id="renfo" class="ui header">Le renforcement musculaire</h2>
+<p>
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam molestie ante lectus, posuere auctor dui tincidunt non. Quisque vitae fermentum tortor. Donec nunc dui, commodo et eros id, semper dignissim ex. In vel eleifend est. Interdum et malesuada fames ac ante ipsum primis in faucibus. Vestibulum a lacus tempor, tincidunt lectus sed, finibus enim. Morbi ultrices sed tellus eget tincidunt. Etiam sed finibus metus, non laoreet sem. Integer ligula libero, molestie eu bibendum in, facilisis eget turpis. Ut ut varius nibh.
+</p>
+
+<h2 id="croise" class="ui header">L'entraînement croisé</h2>
+<p>
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam molestie ante lectus, posuere auctor dui tincidunt non. Quisque vitae fermentum tortor. Donec nunc dui, commodo et eros id, semper dignissim ex. In vel eleifend est. Interdum et malesuada fames ac ante ipsum primis in faucibus. Vestibulum a lacus tempor, tincidunt lectus sed, finibus enim. Morbi ultrices sed tellus eget tincidunt. Etiam sed finibus metus, non laoreet sem. Integer ligula libero, molestie eu bibendum in, facilisis eget turpis. Ut ut varius nibh.
+</p>
+
+<h2 id="etirements" class="ui header">Les étirements</h2>
+<p>
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam molestie ante lectus, posuere auctor dui tincidunt non. Quisque vitae fermentum tortor. Donec nunc dui, commodo et eros id, semper dignissim ex. In vel eleifend est. Interdum et malesuada fames ac ante ipsum primis in faucibus. Vestibulum a lacus tempor, tincidunt lectus sed, finibus enim. Morbi ultrices sed tellus eget tincidunt. Etiam sed finibus metus, non laoreet sem. Integer ligula libero, molestie eu bibendum in, facilisis eget turpis. Ut ut varius nibh.
+</p>
 {% endblock %}
 
 
