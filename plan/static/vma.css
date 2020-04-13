@@ -3,12 +3,39 @@ body {
  text-align: justify;
 }
 
-div.noborder {
-border: none !important; 
-box-shadow: none !important; 
--webkit-box-shadow: none !important; 
-border-radius: none !important;
+.ui.footer.segment {
+    margin: 5em 0em 0em;
+    padding: 5em 0em;
+}
 
+@media only screen and (max-width: 767px) {
+  html {
+    font-size: 14px; 
+  }
+  .main.container {
+    margin-top: 3em;
+  }
+  .ui.container {
+    width: 100%;
+  }
+}
+
+@media only screen and (min-width: 768px) and (max-width: 991px) {
+  html {
+    font-size: 14px; 
+  }
+  .main.container {
+    margin-top: 3em;
+  }
+  .ui.container {
+    width: 100%;
+  }
+}
+
+@media only screen and (min-width: 991px) {
+
+.main.container {
+    margin-top: 6em;
 }
 
 .ui.menu .item img.logo {
@@ -19,17 +46,18 @@ border-radius: none !important;
     max-width: 900px !important
 }
 
-.main.container {
-    margin-top: 6em;
+}
+
+div.noborder {
+border: none !important; 
+box-shadow: none !important; 
+-webkit-box-shadow: none !important; 
+border-radius: none !important;
+
 }
 
 .wireframe {
     margin-top: 2em;
-}
-
-.ui.footer.segment {
-    margin: 5em 0em 0em;
-    padding: 5em 0em;
 }
 tr:nth-child(even){background-color: #f2f2f2;}
 tr:nth-child(odd){background-color: white;}

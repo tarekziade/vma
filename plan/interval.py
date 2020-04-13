@@ -50,8 +50,15 @@ class Repetition:
             repetitions = picked
             vmap = None
 
-        # +10% every week
-        repetitions *= 1 + 0.05 * week_num
+        # +5, 10, 15% every week
+        if level == EASY:
+            progression = 0.05
+        elif level == NORMAL:
+            progression = 0.1
+        else:
+            progression = 0.15
+
+        repetitions *= 1 + progression * week_num
 
         if week_type == WeekType.GENERAL:
             coef = (0.70, 0.80)

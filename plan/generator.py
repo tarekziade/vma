@@ -2,7 +2,7 @@
 from enum import Enum
 import datetime as dt
 
-from plan.interval import pick_repetition, NORMAL
+from plan.interval import pick_repetition, NORMAL, EASY, HARD
 from plan.session import SessionType, WeekType
 
 
@@ -251,6 +251,11 @@ class Session:
                 self.base_time = 60
             if type == SessionType.LONG_RUN:
                 self.base_time *= 1.6
+
+            if self.level == EASY:
+                self.base_time -= 10
+            elif self.level == HARD:
+                self.base_time += 10
 
             self.base_time *= coef
             self.core = Continuous(
