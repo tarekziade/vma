@@ -8,34 +8,34 @@ body {
     padding: 5em 0em;
 }
 
-@media only screen and (max-width: 767px) {
+@media only screen  and (max-width: 480px) {
   html {
-    font-size: 14px; 
+    font-size: .6rem; 
   }
-  .main.container {
-    margin-top: 3em;
-  }
-  .ui.container {
-    width: 100%;
-  }
-}
 
-@media only screen and (min-width: 768px) and (max-width: 991px) {
-  html {
-    font-size: 14px; 
+.ui.menu {
+    font-size: 1rem;
   }
-  .main.container {
-    margin-top: 3em;
-  }
-  .ui.container {
-    width: 100%;
-  }
-}
 
-@media only screen and (min-width: 991px) {
-
+  .ui.segment {
+    font-size: 1rem;.
+  }
 .main.container {
-    margin-top: 6em;
+    margin-top: 3rem;
+  }
+
+  .ui.text.container {
+    font-size: 2rem;
+  }
+
+  .ui.container {
+    width: 100%;
+  }
+}
+
+@media only screen and (min-width: 480px) {
+.main.container {
+    margin-top: 2.5em;
 }
 
 .ui.menu .item img.logo {
