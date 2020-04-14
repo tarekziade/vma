@@ -100,6 +100,7 @@ class Week:
         total = sum([session.duration for session in self.sessions])
         total_distance = sum([session.distance for session in self.sessions])
         summary = {
+            "num": "",
             "type": "",
             "description": "",
             "duration": duration_to_str(total),
