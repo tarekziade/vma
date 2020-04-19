@@ -6,49 +6,28 @@ body {
   margin: 5em 0em 0em;
   padding: 5em 0em;
 }
+
+ .ui table li {
+   margin-left: -2rem;
+ }
+
 /* mobile */
 @media only screen and (max-width: 768px) {
-  html {
-    font-size: .6rem;
-  }
-  .ui.menu {
-    font-size: 1rem;
-  }
-  .ui.segment {
-    font-size: 1rem;
-    .
-}
-  .main.container {
-    margin-top: 3rem;
-  }
-  .ui.text.container {
-    font-size: 2rem;
-  }
-  .ui.container {
-    width: 100%;
-  }
+ .ui.header:first-child {
+   margin-top: 2rem;
+ }
+ .ui.table {
+   font-size: 0.8rem;
+ }
 }
 /* tablet */
 @media only screen and (min-width: 769px) and (max-width: 991px) {
-  html {
-    font-size: .6rem;
-  }
-  .ui.menu {
-    font-size: 1rem;
-  }
-  .ui.segment {
-    font-size: 1rem;
-    .
-}
-  .main.container {
-    margin-top: 3rem;
-  }
-  .ui.text.container {
-    font-size: 2rem;
-  }
-  .ui.container {
-    width: 100%;
-  }
+ .ui.header:first-child {
+   margin-top: 2rem;
+ }
+ .ui.table {
+   font-size: 0.8rem;
+ }
 }
 /* computer */
 @media only screen and (min-width: 992px) {
