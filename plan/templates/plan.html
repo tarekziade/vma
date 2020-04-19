@@ -19,18 +19,16 @@
   <div class="header">
     Mode d'emploi
   </div>
-<p>Cette page vous permet de générer un plan d'entraînement
-pour la plupart des distances de compétition route.
-Vous pouvez modifier les paramètres ci-dessous pour
-re-génerer le plan.
-N'oubliez pas de régler votre vma sur la <a href="/">page d'accueil</a>
-</div>
-</p>
+  <p>Cette page vous permet de générer un plan d'entraînement
+  pour la plupart des distances de compétition route.
+  Vous pouvez modifier les paramètres ci-dessous pour
+  re-génerer le plan. N'oubliez pas de régler votre vma sur la <a href="/">page d'accueil</a>
+  </p>
 
 <form class="ui form"
       id="planOptions"
       onsubmit="return false;"
-      action="" method="post">
+      action="." method="post">
   <div class="field">
     <label>Course</label>
     <select class="ui search dropdown" id="race">
@@ -78,7 +76,7 @@ N'oubliez pas de régler votre vma sur la <a href="/">page d'accueil</a>
 {% block script %}
 <script src="/static/jquery.datatables.js"></script>
 <script src="/static/plan.js"></script>
-<script language="javascript">
+<script>
 
 function generate() {
   var race = $("#race").children("option:selected").val();
