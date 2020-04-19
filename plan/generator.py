@@ -243,6 +243,7 @@ class Session:
         self.vma = week.plan.vma
         self.level = week.plan.level
 
+        # endurance or long run
         if type in (SessionType.ENDURANCE, SessionType.LONG_RUN):
             if self.race in (SessionType.FIVE, SessionType.TEN):
                 self.base_time = 40
@@ -264,21 +265,7 @@ class Session:
             )
             self.warmup = None
             self.cool_down = None
-            self.duration = self.core.duration
-            self.distance = self.core.distance
-        elif self.week.race_week and type == self.race:
-            self.base_time = 0
-            if self.race in (SessionType.FIVE, SessionType.TEN):
-                warmup_time = 15
-            elif self.race == SessionType.HALF:
-                warmup_time = 20
-            else:
-                warmup_time = 25
-            self.warmup = Continuous(self, warmup_time, WARMUP)
-            self.cool_down = None
-            self.core = Continuous.for_race(self, self.race)
-            self.duration = self.warmup.duration + self.core.duration
-            self.distance = self.warmup.distance + self.core.distance
+        # interval or race
         else:
             self.base_time = 0
             if self.race in (SessionType.FIVE, SessionType.TEN):
@@ -288,14 +275,22 @@ class Session:
             else:
                 warmup_time = 25
             self.warmup = Continuous(self, warmup_time, WARMUP)
-            self.cool_down = Continuous(self, 15)
-            self.core = self._build_interval(coef)
-            self.duration = (
-                self.warmup.duration + self.core.duration + self.cool_down.duration
-            )
-            self.distance = (
-                self.warmup.distance + self.core.distance + self.cool_down.distance
-            )
+
+            if self.week.race_week and type == self.race:
+                self.cool_down = None
+                self.core = Continuous.for_race(self, self.race)
+            else:
+                self.cool_down = Continuous(self, 15)
+                self.core = self._build_interval(coef)
+
+        self.duration = self.core.duration
+        self.distance = self.core.distance
+        if self.warmup:
+            self.duration += self.warmup.duration
+            self.distance += self.warmup.distance
+        if self.cool_down:
+            self.duration += self.cool_down.duration
+            self.distance += self.cool_down.distance
 
         self.distance = round(self.distance * 2) / 2
         self.week = week
