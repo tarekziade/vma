@@ -35,6 +35,27 @@ class SessionType(Enum):
             return 5
         return -1
 
+    def __int__(self):
+        if self == SessionType.RECOVERY:
+            return 1
+        if self == SessionType.ENDURANCE:
+            return 2
+        if self == SessionType.LONG_RUN:
+            return 3
+        if self == SessionType.MARATHON:
+            return 4
+        if self == SessionType.HALF:
+            return 5
+        if self == SessionType.TEN:
+            return 6
+        if self == SessionType.FIVE:
+            return 7
+        if self == SessionType.EXTENSIVE_INTERVALS:
+            return 8
+        if self == SessionType.INTENSIVE_INTERVALS:
+            return 9
+        return 10
+
     def intensity(self):
         if self == SessionType.MARATHON:
             return (80, 85)

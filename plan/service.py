@@ -1,5 +1,5 @@
 from bottle import route, run, request, response
-from plan.generator import plan, SessionType, NORMAL
+from plan.generator import plan_from_hash, plan, SessionType, NORMAL
 import json
 import os
 from bottle import jinja2_view, static_file
@@ -13,16 +13,20 @@ static = os.path.join(here, "static")
 
 @route("/api/plan")
 def api_plan():
-    vma = request.params.get("vma", 15)
-    weeks = int(request.params.get("weeks", 8))
-    race = SessionType(int(request.params.get("race", SessionType.TEN)))
-    spw = int(request.params.get("spw", 5))
-    level = int(request.params.get("level", NORMAL))
-    res = {
-        "plan": plan(
-            vma=float(vma), race=race, weeks=weeks, spw=spw, level=level
-        ).json()
-    }
+    hash = request.params.get("hash")
+    if hash is not None:
+        res = {"plan": plan_from_hash(hash=hash)}
+    else:
+        vma = request.params.get("vma", 15)
+        weeks = int(request.params.get("weeks", 8))
+        race = SessionType(int(request.params.get("race", SessionType.TEN)))
+        spw = int(request.params.get("spw", 5))
+        level = int(request.params.get("level", NORMAL))
+        res = {
+            "plan": plan(
+                vma=float(vma), race=race, weeks=weeks, spw=spw, level=level
+            ).json()
+        }
     response.content_type = "application/json"
     return json.dumps(res)
 
@@ -30,6 +34,7 @@ def api_plan():
 @route("/plan")
 @jinja2_view("plan.html", template_lookup=[templates])
 def _plan():
+    # chopper le hash
     return {}
 
 

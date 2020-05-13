@@ -10,11 +10,31 @@ def vma_percent(vma, percent=100):
 EASY, NORMAL, HARD = 1, 2, 3
 
 
+def _j(l, char="+"):
+    return char.join([str(i) for i in l])
+
+def _s(l, char="+"):
+    return l.split(char)
+
+
+names = ["100M", "200M", "300M", "400M", "500M",
+             "600M", "800M", "1000M", "2000M",
+             "3000M", "4000M", "5000M", "10000M"]
+
+def name2code(name):
+    return names.index(name)
+
+def code2name(code):
+    return names[int(code)]
+
+
 class Repetition:
     distances = {}
     combo = {}
+    type = 0
 
-    def __init__(self, race, name, vma, vmap=None, level=NORMAL):
+    def __init__(self, race, name, vma, vmap=None, level=NORMAL,
+            repetitions=1):
         self.name = name
         self.vma = vma
         self.level = level
@@ -37,6 +57,13 @@ class Repetition:
             self.recovery_duration = self.duration * recovery_coef
 
         self.recovery_distance = self.recovery_speed * self.recovery_duration / 3600
+        self.repetitions = repetitions
+
+    @property
+    def hash(self):
+        key = _j([name2code(self.name), self.type, self.vma_percent, self.level,
+            self.repetitions])
+        return key
 
     @classmethod
     def pick(cls, race, week_num, vma, week_type, num_week, level):
@@ -64,16 +91,14 @@ class Repetition:
             coef = (0.70, 0.80)
         else:
             coef = (0.60, 0.80)
-
-        print("%s %s %s" % (week_num, week_type, num_week))
         if week_num == num_week:
             # race week, reduce the volume
             repetitions *= coef[0]
         elif week_num == num_week - 1:
             repetitions *= coef[1]
 
-        instance = cls(race, type, vma, vmap, level)
-        return instance, round(repetitions)
+        instance = cls(race, type, vma, vmap, level, round(repetitions))
+        return instance
 
     def __str__(self):
         return self.name
@@ -96,6 +121,7 @@ class IntensiveRepetition(Repetition):
         SessionType.HALF: {"100M": (16, 110), "200M": (12, 100), "300M": (8, 95)},
         SessionType.MARATHON: {"100M": (18, 105), "200M": (14, 100), "300M": (10, 95)},
     }
+    type = 1
 
 
 class ExtensiveRepetition(Repetition):
@@ -132,6 +158,7 @@ class ExtensiveRepetition(Repetition):
             "800M": (5, 85),
         },
     }
+    type = 2
 
 
 class SpeRepetition(Repetition):
@@ -157,6 +184,23 @@ class SpeRepetition(Repetition):
             "10000M": 1,
         },
     }
+    type = 3
+
+
+def repetition_from_hash(hash, session):
+    hash = _s(hash)
+    name = code2name(hash[0])
+    type = int(hash[1])
+    vmap = float(hash[2])
+    level = int(hash[3])
+    repetitions = int(hash[4])
+    if type == IntensiveRepetition.type:
+        klass = IntensiveRepetition
+    elif type == ExtensiveRepetition.type:
+        klass = ExtensiveRepetition
+    else:
+        klass = SpeRepetition
+    return klass(session.race, name, session.vma, vmap, level, round(repetitions))
 
 
 def pick_repetition(type, race, week_num, vma, week_type, num_weeks, level):

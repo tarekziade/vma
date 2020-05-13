@@ -1,13 +1,14 @@
 # encoding: utf8
 from enum import Enum
 import datetime as dt
+import zlib, base64
 
-from plan.interval import pick_repetition, NORMAL, EASY, HARD
+from plan.interval import repetition_from_hash, pick_repetition, NORMAL, EASY, HARD
 from plan.session import SessionType, WeekType
 
 
 class Week:
-    def __init__(self, plan, num, type, spw, race):
+    def __init__(self, plan, num, type, spw, race, sessions_builder=None):
         self.type = type
         self.spw = spw
         self.race = race
@@ -23,29 +24,51 @@ class Week:
         else:
             coef = 1.0
 
-        if self.race_week:
-            self.sessions = [
-                self._session(SessionType.INTENSIVE_INTERVALS, coef),
-                self._session(SessionType.ENDURANCE, coef),
-                self._session(self._extensive_or_spe(), coef),
-            ]
-        else:
-            self.sessions = [
-                self._session(SessionType.INTENSIVE_INTERVALS, coef),
-                self._session(self._extensive_or_spe(), coef),
-                self._session(SessionType.LONG_RUN, coef),
-            ]
-            if self.spw == 4:
-                self.sessions.insert(1, self._session(SessionType.ENDURANCE, coef))
-            elif self.spw == 5:
-                self.sessions.insert(1, self._session(SessionType.ENDURANCE, coef))
-                self.sessions.insert(3, self._session(SessionType.ENDURANCE, coef))
+        if sessions_builder is None:
+            if self.race_week:
+                self.sessions = [
+                    self._session(SessionType.INTENSIVE_INTERVALS, coef),
+                    self._session(SessionType.ENDURANCE, coef),
+                    self._session(self._extensive_or_spe(), coef),
+                ]
+            else:
+                self.sessions = [
+                    self._session(SessionType.INTENSIVE_INTERVALS, coef),
+                    self._session(self._extensive_or_spe(), coef),
+                    self._session(SessionType.LONG_RUN, coef),
+                ]
+                if self.spw == 4:
+                    self.sessions.insert(1, self._session(SessionType.ENDURANCE, coef))
+                elif self.spw == 5:
+                    self.sessions.insert(1, self._session(SessionType.ENDURANCE, coef))
+                    self.sessions.insert(3, self._session(SessionType.ENDURANCE, coef))
 
-        for num, session in enumerate(self.sessions):
-            session.num = num + 1
+            for num, session in enumerate(self.sessions):
+                session.num = num + 1
+        else:
+            self.sessions = sessions_builder(self)
 
         self.duration = sum([session.duration for session in self.sessions])
         self.distance = sum([session.distance for session in self.sessions])
+
+    @classmethod
+    def from_hash(self, hash, plan, num, type, spw, race):
+        elmts = hash[1:-1].split("_")
+
+        def builder(week):
+            sessions = []
+            for session_hash in elmts:
+                sessions.append(Session.from_hash(session_hash, week))
+            return sessions
+
+        return Week(plan, num, type, spw, race, sessions_builder=builder)
+
+    @property
+    def hash(self):
+        key = []
+        for session in self.sessions:
+            key.append(session.hash)
+        return "[" + "_".join(key) + "]"
 
     def __str__(self):
         res = [
@@ -161,25 +184,54 @@ def _r(duration, base=5):
     return base * round(duration / base)
 
 
+def _j(l, char="+"):
+    return char.join([str(i) for i in l])
+
+def _s(l, char="+"):
+    return l.split(char)
+
+
 class Continuous:
-    def __init__(self, session, duration, intensity=ENDURANCE):
+    def __init__(self, vma, duration, intensity=ENDURANCE):
         self.duration = _r(duration)
-        vma = session.week.plan.vma
+        self.vma = vma
+        self.intensity = intensity
         self.speed_low = vma_to_speed(vma, intensity[0])
         self.speed_high = vma_to_speed(vma, intensity[1])
         speed_avg = (self.speed_low + self.speed_high) / 2.0
         self.distance = self.duration / 60 * speed_avg
 
+    @property
+    def hash(self):
+        if self.intensity == ENDURANCE:
+            code = 1
+        else:
+            code = 2
+        if round(self.duration) == self.duration:
+            duration = round(self.duration)
+        else:
+            duration = self.duration
+        return "|".join([str(duration), str(code)])
+
     @classmethod
-    def for_race(cls, session, race):
+    def from_hash(cls, hash, session):
+        hash = hash.split("|")
+        if int(hash[1]) == 1:
+            intensity = ENDURANCE
+        else:
+            intensity = WARMUP
+        duration = float(hash[0])
+        return cls(session.vma, duration, intensity)
+
+    @classmethod
+    def for_race(cls, vma, race):
         intensity = race.intensity()
         distance = race.distance()
-        vma = session.week.plan.vma
         speed_low = vma_to_speed(vma, intensity[0])
         speed_high = vma_to_speed(vma, intensity[1])
         speed_avg = (speed_low + speed_high) / 2.0
         duration = distance / speed_avg * 60
-        return cls(session, duration, intensity)
+        return cls(vma, duration, intensity)
 
     def __str__(self):
         return "%s (entre %s et %s km/h)" % (
@@ -202,18 +254,30 @@ def vma_percent(vma, percent=100):
 
 
 class Interval:
-    def __init__(self, session, repetitions, type):
+    def __init__(self, session, type):
         self.vma = session.vma
         self.session = session
-        self.repetitions = repetitions
+        self.repetitions = type.repetitions
         self.type = type
         self.duration = _r(
-            self.type.duration / 60 * repetitions
-            + self.type.recovery_duration / 60 * repetitions
+            self.type.duration / 60 * self.repetitions
+            + self.type.recovery_duration / 60 * self.repetitions
         )
         self.distance = (
-            self.type.distance * repetitions + self.type.recovery_distance * repetitions
+            self.type.distance * type.repetitions + self.type.recovery_distance *
+            self.repetitions
         )
+
+    @property
+    def hash(self):
+        return "I" + _j([self.type.hash], ";")
+
+    @classmethod
+    def from_hash(cls, hash, session):
+        hash = hash[1:]
+        hash = _s(hash, ";")
+        type = repetition_from_hash(hash[0], session)
+        return cls(session, type)
 
     def __str__(self):
         return "%d x %s | effort de %s | contre-effort de %s | %s" % (
@@ -235,13 +299,17 @@ class Interval:
 
 
 class Session:
-    def __init__(self, week, type, coef=1.0):
+    def __init__(self, week, type, coef=1.0, session_builder=None):
         self.type = type
         self.race = week.race
         self.week = week
         self.num = 0
         self.vma = week.plan.vma
         self.level = week.plan.level
+        self.coef = coef
+
+        if session_builder is not None:
+            self.warmup, self.core, self.cool_down = session_builder(self)
 
         # endurance or long run
         if type in (SessionType.ENDURANCE, SessionType.LONG_RUN):
@@ -260,28 +328,31 @@ class Session:
                 self.base_time += 10
 
             self.base_time *= coef
-            self.core = Continuous(
-                self, self.base_time + ((week.num - 1) * self.base_time * 0.1)
-            )
-            self.warmup = None
-            self.cool_down = None
+            if session_builder is None:
+                self.core = Continuous(
+                    self.vma, self.base_time + ((week.num - 1) * self.base_time * 0.1)
+                )
+                self.warmup = None
+                self.cool_down = None
         # interval or race
         else:
             self.base_time = 0
-            if self.race in (SessionType.FIVE, SessionType.TEN):
-                warmup_time = 15
-            elif self.race == SessionType.HALF:
-                warmup_time = 20
-            else:
-                warmup_time = 25
-            self.warmup = Continuous(self, warmup_time, WARMUP)
+            if session_builder is None:
+                if self.race in (SessionType.FIVE, SessionType.TEN):
+                    warmup_time = 15
+                elif self.race == SessionType.HALF:
+                    warmup_time = 20
+                else:
+                    warmup_time = 25
 
-            if self.week.race_week and type == self.race:
-                self.cool_down = None
-                self.core = Continuous.for_race(self, self.race)
-            else:
-                self.cool_down = Continuous(self, 15)
-                self.core = self._build_interval(coef)
+                self.warmup = Continuous(self.vma, warmup_time, WARMUP)
+
+                if self.week.race_week and type == self.race:
+                    self.cool_down = None
+                    self.core = Continuous.for_race(self.vma, self.race)
+                else:
+                    self.cool_down = Continuous(self.vma, 15)
+                    self.core = self._build_interval(coef)
 
         self.duration = self.core.duration
         self.distance = self.core.distance
@@ -295,12 +366,50 @@ class Session:
         self.distance = round(self.distance * 2) / 2
         self.week = week
 
+    @classmethod
+    def from_hash(cls, hash, week):
+        elmts = hash.split(":")
+
+        def builder(session):
+            def _get_cont(elmt):
+                if elmt == "x":
+                    return None
+                return Continuous.from_hash(elmt, session)
+
+            warmup = _get_cont(elmts[2])
+            if elmts[3].startswith("I"):
+                core = Interval.from_hash(elmts[3], session)
+            else:
+                core = Continuous.from_hash(elmts[3], session)
+            cd = _get_cont(elmts[4])
+            return warmup, core, cd
+
+        return cls(week, elmts[0], elmts[1], session_builder=builder)
+
+    @property
+    def hash(self):
+        if round(self.coef) == self.coef:
+            coef = str(int(self.coef))
+        else:
+            coef = str(self.coef)
+        key = [str(int(self.type)), str(coef)]
+        if self.warmup:
+            key.append(self.warmup.hash)
+        else:
+            key.append("x")
+        key.append(self.core.hash)
+        if self.cool_down:
+            key.append(self.cool_down.hash)
+        else:
+            key.append("x")
+        return ":".join(key)
+
     def _graduation(self, base):
         # XXX inclue tapering at the end
         return base + ((self.week.num - 1) * base * 0.1)
 
     def _build_interval(self, coef):
-        type, repetitions = pick_repetition(
+        type = pick_repetition(
             self.type,
             self.race,
             self.week.num,
@@ -309,7 +418,7 @@ class Session:
             self.week.plan.total_weeks,
             self.level,
         )
-        return Interval(self, repetitions, type)
+        return Interval(self, type)
 
     def __str__(self):
         duration = duration_to_str(self.duration)
@@ -371,6 +480,37 @@ class TrainingPlan:
         self.weeks = []
         self.total_weeks = None
 
+    @classmethod
+    def from_small_hash(cls, hash):
+        uncompressed = zlib.decompress(base64.b64decode(hash)).decode("utf8")
+        return cls.from_hash(uncompressed)
+
+    @classmethod
+    def from_hash(cls, hash):
+        elements = _s(hash)
+        race = int(elements[0])
+        vma = float(elements[1])
+        level = float(elements[2])
+        plan = cls(race, vma, level)
+        plan.spw = elements[3]
+        # ugly
+        weeks = [w.strip("[]") for w in _j(elements[4:]).split("]+[")]
+        for num, week_hash in enumerate(weeks):
+            plan.weeks.append(Week.from_hash("["+week_hash+"]", plan, num, type,
+                plan.spw, race))
+        return plan
+
+    @property
+    def hash(self):
+        key = [int(self.race), self.vma, self.level, self.spw]
+        for week in self.weeks:
+            key.append(week.hash)
+        return _j(key)
+
+    @property
+    def small_hash(self):
+        return base64.b64encode(zlib.compress(self.hash.encode("utf8"), 9))
+
     def __str__(self):
         res = ["Plan %s sur %d semaines" % (str(self.race), len(self.weeks))]
         res += [""]
@@ -392,6 +532,7 @@ class TrainingPlan:
             "semaines. " % self.spe_weeks
         )
         res["description"] = "\n".join(desc)
+        res["hash"] = self.small_hash.decode("utf8")
         return res
 
     def build(self, weeks, spw):
@@ -422,5 +563,18 @@ def plan(race=SessionType.TEN, vma=18.5, weeks=8, spw=5, level=NORMAL):
     return training
 
 
+def plan_from_hash(hash):
+    return TrainingPlan.from_small_hash(hash)
+
+
 if __name__ == "__main__":
-    print(plan().json())
+    p = plan()
+    hash = p.small_hash
+
+    print(p.hash)
+    print(len(p.small_hash))
+    p2 = TrainingPlan.from_small_hash(hash)
+    #data = zlib.decompress(base64.b64decode(p.small_hash))
+    #print(data)
+    #print(len(data))
+    #print(plan().json())

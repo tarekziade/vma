@@ -10,6 +10,7 @@ function fillTable (race, weeks, spw, level) {
 
     $('#planTitle').text(plan.title)
     $('#plan').append('<p>' + plan.description + '</p>')
+    $('#plan').append('<p><a href="/plan?hash='+ plan.hash +'">Lien permanent vers ce plan</a></p>')
 
     $.each(plan.weeks, function (key, week) {
       const div = $('#plan').append('<div id="week-' + week.num + '"></div>')
