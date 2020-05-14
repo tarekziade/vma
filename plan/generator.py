@@ -32,16 +32,33 @@ class Week:
                     self._session(self._extensive_or_spe(), coef),
                 ]
             else:
-                self.sessions = [
-                    self._session(SessionType.INTENSIVE_INTERVALS, coef),
-                    self._session(self._extensive_or_spe(), coef),
-                    self._session(SessionType.LONG_RUN, coef),
-                ]
-                if self.spw == 4:
-                    self.sessions.insert(1, self._session(SessionType.ENDURANCE, coef))
-                elif self.spw == 5:
-                    self.sessions.insert(1, self._session(SessionType.ENDURANCE, coef))
-                    self.sessions.insert(3, self._session(SessionType.ENDURANCE, coef))
+                # 3 runs a week is one extensivee or spe, one endurance, and one
+                # long run
+
+                if self.spw == 3:
+                    self.sessions = [
+                        self._session(SessionType.ENDURANCE, coef),
+                        self._session(self._extensive_or_spe(), coef),
+                        self._session(SessionType.LONG_RUN, coef),
+                    ]
+
+                else:
+                    self.sessions = [
+                        self._session(SessionType.INTENSIVE_INTERVALS, coef),
+                        self._session(self._extensive_or_spe(), coef),
+                        self._session(SessionType.LONG_RUN, coef),
+                    ]
+                    if self.spw == 4:
+                        self.sessions.insert(
+                            1, self._session(SessionType.ENDURANCE, coef)
+                        )
+                    elif self.spw == 5:
+                        self.sessions.insert(
+                            1, self._session(SessionType.ENDURANCE, coef)
+                        )
+                        self.sessions.insert(
+                            3, self._session(SessionType.ENDURANCE, coef)
+                        )
 
             for num, session in enumerate(self.sessions):
                 session.num = num + 1
@@ -178,6 +195,7 @@ def speed_to_str(speed):
 
 WARMUP = (60, 65)
 ENDURANCE = (65, 75)
+COOL_DOWN = (50, 65)
 
 
 def _r(duration, base=5):
@@ -186,6 +204,7 @@ def _r(duration, base=5):
 
 def _j(l, char="+"):
     return char.join([str(i) for i in l])
+
 
 def _s(l, char="+"):
     return l.split(char)
@@ -259,13 +278,23 @@ class Interval:
         self.session = session
         self.repetitions = type.repetitions
         self.type = type
+        # split in two
+        if self.repetitions > 8:
+            repetitions, remainder = divmod(self.repetitions, 2)
+            self.repetitions = [repetitions + remainder] * 2
+            self.between_duration = 2.0
+        else:
+            self.between_duration = 0.0
+            self.repetitions = (self.repetitions,)
+
         self.duration = _r(
-            self.type.duration / 60 * self.repetitions
-            + self.type.recovery_duration / 60 * self.repetitions
+            self.type.duration / 60 * sum(self.repetitions)
+            + self.type.recovery_duration / 60 * sum(self.repetitions)
+            + self.between_duration / 60
         )
         self.distance = (
-            self.type.distance * type.repetitions + self.type.recovery_distance *
-            self.repetitions
+            self.type.distance * type.repetitions
+            + self.type.recovery_distance * sum(self.repetitions)
         )
 
     @property
@@ -280,12 +309,29 @@ class Interval:
         return cls(session, type)
 
     def __str__(self):
-        return "%d x %s | effort de %s | contre-effort de %s | %s" % (
-            self.repetitions,
-            self.type,
-            seconds_to_str(self.type.duration),
-            seconds_to_str(self.type.recovery_duration),
-            duration_to_str(self.duration),
+        if len(self.repetitions) == 1:
+            r = "%d x %s" % (self.repetitions[0], self.type)
+        else:
+            r = "2x(%d x %s) R=%s" % (
+                self.repetitions[0],
+                self.type,
+                duration_to_str(self.between_duration),
+            )
+
+        info = (
+            "Effort de %s à %skm/h. Contre-effort de %s à %skm/h. Durée totale de %s"
+            % (
+                seconds_to_str(self.type.duration),
+                speed_to_str(self.type.speed),
+                seconds_to_str(self.type.recovery_duration),
+                speed_to_str(self.type.recovery_speed),
+                duration_to_str(self.duration),
+            )
+        )
+
+        return (
+            "<div class='ui' data-inverted='' data-tooltip='%s'>%s "
+            " <i class='question circle icon'></i></div>" % (info, r)
         )
 
     def json(self):
@@ -351,7 +397,7 @@ class Session:
                     self.cool_down = None
                     self.core = Continuous.for_race(self.vma, self.race)
                 else:
-                    self.cool_down = Continuous(self.vma, 15)
+                    self.cool_down = Continuous(self.vma, 15, COOL_DOWN)
                     self.core = self._build_interval(coef)
 
         self.duration = self.core.duration
@@ -496,8 +542,9 @@ class TrainingPlan:
         # ugly
         weeks = [w.strip("[]") for w in _j(elements[4:]).split("]+[")]
         for num, week_hash in enumerate(weeks):
-            plan.weeks.append(Week.from_hash("["+week_hash+"]", plan, num, type,
-                plan.spw, race))
+            plan.weeks.append(
+                Week.from_hash("[" + week_hash + "]", plan, num, type, plan.spw, race)
+            )
         return plan
 
     @property
@@ -574,7 +621,7 @@ if __name__ == "__main__":
     print(p.hash)
     print(len(p.small_hash))
     p2 = TrainingPlan.from_small_hash(hash)
-    #data = zlib.decompress(base64.b64decode(p.small_hash))
-    #print(data)
-    #print(len(data))
-    #print(plan().json())
+    # data = zlib.decompress(base64.b64decode(p.small_hash))
+    # print(data)
+    # print(len(data))
+    # print(plan().json())

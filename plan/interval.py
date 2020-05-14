@@ -13,16 +13,31 @@ EASY, NORMAL, HARD = 1, 2, 3
 def _j(l, char="+"):
     return char.join([str(i) for i in l])
 
+
 def _s(l, char="+"):
     return l.split(char)
 
 
-names = ["100M", "200M", "300M", "400M", "500M",
-             "600M", "800M", "1000M", "2000M",
-             "3000M", "4000M", "5000M", "10000M"]
+names = [
+    "100M",
+    "200M",
+    "300M",
+    "400M",
+    "500M",
+    "600M",
+    "800M",
+    "1000M",
+    "2000M",
+    "3000M",
+    "4000M",
+    "5000M",
+    "10000M",
+]
+
 
 def name2code(name):
     return names.index(name)
+
 
 def code2name(code):
     return names[int(code)]
@@ -33,8 +48,7 @@ class Repetition:
     combo = {}
     type = 0
 
-    def __init__(self, race, name, vma, vmap=None, level=NORMAL,
-            repetitions=1):
+    def __init__(self, race, name, vma, vmap=None, level=NORMAL, repetitions=1):
         self.name = name
         self.vma = vma
         self.level = level
@@ -61,8 +75,15 @@ class Repetition:
 
     @property
     def hash(self):
-        key = _j([name2code(self.name), self.type, self.vma_percent, self.level,
-            self.repetitions])
+        key = _j(
+            [
+                name2code(self.name),
+                self.type,
+                self.vma_percent,
+                self.level,
+                self.repetitions,
+            ]
+        )
         return key
 
     @classmethod

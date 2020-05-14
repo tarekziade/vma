@@ -56,12 +56,14 @@ tr:nth-child(even){
 tr:nth-child(odd){
   background-color: white;
 }
-tr:hover {
+/*
+ * tr:hover {
   background-color: #ddd;
 }
 td:hover {
   background-color: gray;
 }
+*/
 th {
   background-color: #4CAF50;
   color: white;
