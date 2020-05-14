@@ -319,7 +319,7 @@ class Interval:
             )
 
         info = (
-            "Effort de %s à %skm/h. Contre-effort de %s à %skm/h. Durée totale de %s"
+            "Effort de %s à %skm/h.<br/>Contre-effort de %s à %skm/h.<br/>Durée totale de %s"
             % (
                 seconds_to_str(self.type.duration),
                 speed_to_str(self.type.speed),
@@ -330,9 +330,9 @@ class Interval:
         )
 
         return (
-            "<div class='ui' data-inverted='' data-tooltip='%s'>%s "
-            " <i class='question circle icon'></i></div>" % (info, r)
-        )
+           """%s <div class="ui icon button" data-variation="mini inverted" data-html="%s"><i class="question circle icon"></i></div>
+           """ % (r, info)
+      )
 
     def json(self):
         return {

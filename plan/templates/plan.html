@@ -117,7 +117,17 @@ $(document).ready(function(){
    var level = getCookie('level') || 1;
    $("#level").val(level);
 
-   generate();
+  generate();
+
+$('body').on({
+  mouseenter: function() {
+    $(this).popup("show");
+  },
+  mouseleave: function() {
+    $(this).popup("hide");
+  }
+}, 'div.icon.button');
+
 });
 
 </script>
