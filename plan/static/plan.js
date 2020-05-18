@@ -1,10 +1,10 @@
 
-function fillTable (race, weeks, spw, level) {
+function fillTable (race, weeks, spw, level, cross) {
   const speed = getCookie('vma')
   $('#plan').empty()
 
   $.getJSON('/api/plan?vma=' + speed + '&race=' + race + '&weeks=' + weeks +
-         '&spw=' + spw + '&level=' + level,
+         '&spw=' + spw + '&level=' + level + '&cross=' + cross,
   function (data) {
     const plan = data.plan
 

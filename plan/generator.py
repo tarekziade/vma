@@ -155,7 +155,7 @@ class Week:
         return self.race
 
     def _session(self, type, coef=1):
-        return Session(self, type, coef)
+        return Session(self, type, coef, cross=self.plan.cross)
 
 
 def seconds_to_str(seconds):
@@ -208,6 +208,26 @@ def _j(l, char="+"):
 
 def _s(l, char="+"):
     return l.split(char)
+
+
+class Bike:
+    def __init__(self, duration):
+        self.duration = duration
+        # hardcoded for now
+        self.speed = 22
+        self.distance = self.speed * duration / 60.
+
+    def __str__(self):
+        return duration_to_str(self.duration)
+
+    @property
+    def hash(self):
+        return "B%d" % self.duration
+
+    @classmethod
+    def from_hash(cls, hash):
+        duration = int(hash[1:])
+        return cls(duration)
 
 
 class Continuous:
@@ -329,10 +349,11 @@ class Interval:
             )
         )
 
-        return (
-           """%s <div class="ui icon button" data-variation="mini inverted" data-html="%s"><i class="question circle icon"></i></div>
-           """ % (r, info)
-      )
+        return """%s <div class="ui icon button" data-variation="mini inverted" data-html="%s"><i class="question circle icon"></i></div>
+           """ % (
+            r,
+            info,
+        )
 
     def json(self):
         return {
@@ -345,7 +366,7 @@ class Interval:
 
 
 class Session:
-    def __init__(self, week, type, coef=1.0, session_builder=None):
+    def __init__(self, week, type, coef=1.0, session_builder=None, cross=False):
         self.type = type
         self.race = week.race
         self.week = week
@@ -353,6 +374,7 @@ class Session:
         self.vma = week.plan.vma
         self.level = week.plan.level
         self.coef = coef
+        self.cross = cross
 
         if session_builder is not None:
             self.warmup, self.core, self.cool_down = session_builder(self)
@@ -373,11 +395,16 @@ class Session:
             elif self.level == HARD:
                 self.base_time += 10
 
+            week_pair = week.num % 2 == 1
             self.base_time *= coef
             if session_builder is None:
-                self.core = Continuous(
-                    self.vma, self.base_time + ((week.num - 1) * self.base_time * 0.1)
-                )
+                duration = self.base_time + ((week.num - 1) * self.base_time * 0.1)
+                if self.cross and type == SessionType.ENDURANCE and week_pair:
+                    self.core = Bike(duration * 1.25)
+                elif self.cross and type == SessionType.LONG_RUN and not week_pair:
+                    self.core = Bike(duration * 1.5)
+                else:
+                    self.core = Continuous(self.vma, duration)
                 self.warmup = None
                 self.cool_down = None
         # interval or race
@@ -425,6 +452,8 @@ class Session:
             warmup = _get_cont(elmts[2])
             if elmts[3].startswith("I"):
                 core = Interval.from_hash(elmts[3], session)
+            elif elmts[3].startswith("B"):
+                core = Bike.from_hash(elmts[3])
             else:
                 core = Continuous.from_hash(elmts[3], session)
             cd = _get_cont(elmts[4])
@@ -492,7 +521,10 @@ class Session:
             "distance": "%skm" % speed_to_str(self.distance),
         }
         if self.type in (SessionType.ENDURANCE, SessionType.LONG_RUN):
-            res["description"] = "Effort continu de " + str(self.core)
+            if not isinstance(self.core, Bike):
+                res["description"] = "Effort continu de " + str(self.core)
+            else:
+                res["description"] = "Sortie vélo de " + str(self.core)
             return res
         res["warmup"] = self.warmup.json()
         res["cool_down"] = self.cool_down is not None and self.cool_down.json() or {}
@@ -516,7 +548,7 @@ class Session:
 
 
 class TrainingPlan:
-    def __init__(self, race, vma, level):
+    def __init__(self, race, vma, level, cross):
         self.race = race
         self.vma = vma
         self.level = level
@@ -525,6 +557,7 @@ class TrainingPlan:
         self.spe_weeks = None
         self.weeks = []
         self.total_weeks = None
+        self.cross = cross
 
     @classmethod
     def from_small_hash(cls, hash):
@@ -537,7 +570,8 @@ class TrainingPlan:
         race = int(elements[0])
         vma = float(elements[1])
         level = float(elements[2])
-        plan = cls(race, vma, level)
+        cross = elements[3] == 1
+        plan = cls(race, vma, level, cross)
         plan.spw = elements[3]
         # ugly
         weeks = [w.strip("[]") for w in _j(elements[4:]).split("]+[")]
@@ -549,7 +583,13 @@ class TrainingPlan:
 
     @property
     def hash(self):
-        key = [int(self.race), self.vma, self.level, self.spw]
+        key = [
+            int(self.race),
+            self.vma,
+            self.level,
+            self.spw,
+            self.cross and "1" or "0",
+        ]
         for week in self.weeks:
             key.append(week.hash)
         return _j(key)
@@ -604,8 +644,8 @@ class TrainingPlan:
             self.weeks.append(Week(self, week_num, WeekType.SPECIFIC, spw, self.race))
 
 
-def plan(race=SessionType.TEN, vma=18.5, weeks=8, spw=5, level=NORMAL):
-    training = TrainingPlan(race, vma, level)
+def plan(race=SessionType.TEN, vma=18.5, weeks=8, spw=5, level=NORMAL, cross=False):
+    training = TrainingPlan(race, vma, level, cross=cross)
     training.build(weeks, spw)
     return training
 
@@ -615,7 +655,7 @@ def plan_from_hash(hash):
 
 
 if __name__ == "__main__":
-    p = plan()
+    p = plan(cross=True)
     hash = p.small_hash
 
     print(p.hash)

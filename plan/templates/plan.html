@@ -63,6 +63,12 @@
         <option value="3">Difficile</option>
     </select>
   </div>
+  <div class="field">
+    <div class="ui checkbox">
+      <input type="checkbox" id="cross">
+      <label>Entraînement croisé</label>
+    </div>
+  </div>
 </form>
 
 <div class="ui divider"></div>
@@ -84,11 +90,17 @@ function generate() {
   var weeks = $("#weeks").children("option:selected").val();
   var spw = $("#spw").children("option:selected").val();
   var level = $("#level").children("option:selected").val();
+  var cross = "0";
+  if ($('#cross').is(":checked")) {
+    cross = "1";
+  }
+
   setCookie('race', race);
   setCookie('weeks', weeks);
   setCookie('spw', spw);
   setCookie('level', level);
-  fillTable(race, weeks, spw, level);
+  setCookie('cross', cross);
+  fillTable(race, weeks, spw, level, cross);
 }
 
 $(document).ready(function(){
@@ -108,6 +120,10 @@ $(document).ready(function(){
         generate();
     });
 
+   $("#cross").change(function(){
+        generate();
+    });
+
    var race = getCookie('race') || 6;
    $("#race").val(race);
    var weeks = getCookie('weeks') || 8;
@@ -116,6 +132,13 @@ $(document).ready(function(){
    $("#spw").val(spw);
    var level = getCookie('level') || 1;
    $("#level").val(level);
+
+   var cross = getCookie('cross') || "0";
+   if (cross == "1") {
+     $("#cross"). prop("checked", true);
+   } else {
+     $("#cross"). prop("checked", false);
+   }
 
   generate();
 
