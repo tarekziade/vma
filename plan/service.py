@@ -25,8 +25,12 @@ def api_plan():
         level = int(request.params.get("level", NORMAL))
         res = {
             "plan": plan(
-                vma=float(vma), race=race, weeks=weeks, spw=spw, level=level,
-                cross=cross
+                vma=float(vma),
+                race=race,
+                weeks=weeks,
+                spw=spw,
+                level=level,
+                cross=cross,
             ).json()
         }
     response.content_type = "application/json"

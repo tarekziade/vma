@@ -7,6 +7,11 @@ from plan.interval import repetition_from_hash, pick_repetition, NORMAL, EASY, H
 from plan.session import SessionType, WeekType
 
 
+def distance_acceleration(initial_speed, final_speed, duration):
+    average_speed = (initial_speed + final_speed) / 2.0
+    return duration * average_speed
+
+
 class Week:
     def __init__(self, plan, num, type, spw, race, sessions_builder=None):
         self.type = type
@@ -215,7 +220,7 @@ class Bike:
         self.duration = duration
         # hardcoded for now
         self.speed = 22
-        self.distance = self.speed * duration / 60.
+        self.distance = self.speed * duration / 60.0
 
     def __str__(self):
         return duration_to_str(self.duration)
@@ -238,7 +243,16 @@ class Continuous:
         self.speed_low = vma_to_speed(vma, intensity[0])
         self.speed_high = vma_to_speed(vma, intensity[1])
         speed_avg = (self.speed_low + self.speed_high) / 2.0
-        self.distance = self.duration / 60 * speed_avg
+
+        if intensity == ENDURANCE:
+            # 10mn acceleration
+            warmup_distance = distance_acceleration(9.0, speed_avg, 10.0 / 60.0)
+            self.core_duration = self.duration - 10.0
+            core_distance = self.core_duration / 60 * speed_avg
+            self.distance = core_distance + warmup_distance
+        else:
+            self.distance = self.duration / 60 * speed_avg
+            self.core_duration = None
 
     @property
     def hash(self):
@@ -272,11 +286,33 @@ class Continuous:
         duration = distance / speed_avg * 60
         return cls(vma, duration, intensity)
 
+    @property
+    def title(self):
+        if self.intensity == ENDURANCE:
+            return "Endurance de %s" % duration_to_str(self.duration)
+        if self.intensity == WARMUP:
+            return "Echauffement de %s" % duration_to_str(self.duration)
+        return "Retour au calme de %s" % duration_to_str(self.duration)
+
     def __str__(self):
-        return "%s (entre %s et %s km/h)" % (
-            duration_to_str(self.duration),
-            speed_to_str(self.speed_low),
-            speed_to_str(self.speed_high),
+        if self.intensity == ENDURANCE:
+            info = "10mn de 9 à %skm/h<br/>%s entre %s et %skm/h" % (
+                speed_to_str(self.speed_low),
+                duration_to_str(self.core_duration),
+                speed_to_str(self.speed_low),
+                speed_to_str(self.speed_high),
+            )
+
+        else:
+            info = "Vitesse entre %s et %s km/h" % (
+                speed_to_str(self.speed_low),
+                speed_to_str(self.speed_high),
+            )
+
+        return """%s <i class="question circle icon" data-variation="mini inverted" data-html="%s"></i>
+           """ % (
+            self.title,
+            info,
         )
 
     def json(self):
@@ -349,7 +385,7 @@ class Interval:
             )
         )
 
-        return """%s <div class="ui icon button" data-variation="mini inverted" data-html="%s"><i class="question circle icon"></i></div>
+        return """%s <i class="question circle icon" data-variation="mini inverted" data-html="%s"></i>
            """ % (
             r,
             info,
@@ -522,7 +558,7 @@ class Session:
         }
         if self.type in (SessionType.ENDURANCE, SessionType.LONG_RUN):
             if not isinstance(self.core, Bike):
-                res["description"] = "Effort continu de " + str(self.core)
+                res["description"] = str(self.core)
             else:
                 res["description"] = "Sortie vélo de " + str(self.core)
             return res
@@ -530,20 +566,12 @@ class Session:
         res["cool_down"] = self.cool_down is not None and self.cool_down.json() or {}
         res["core"] = self.core.json()
         if self.cool_down is not None:
-            res["description"] = self._to_html(
-                "Echauffement %s" % self.warmup,
-                "%s" % self.core,
-                "Retour au calme %s" % self.cool_down,
-            )
+            res["description"] = self._to_html(self.warmup, self.core, self.cool_down)
         elif self.week.race_week and self.type == self.race:
 
-            res["description"] = self._to_html(
-                "Echauffement %s" % self.warmup, "Course!!! %s" % self.core
-            )
+            res["description"] = self._to_html(self.warmup, "Course!!! %s" % self.core)
         else:
-            res["description"] = self._to_html(
-                "Echauffement %s" % self.warmup, "%s" % self.core
-            )
+            res["description"] = self._to_html(self.warmup, "%s" % self.core)
         return res
 
 
