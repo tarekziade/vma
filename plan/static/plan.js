@@ -11,7 +11,6 @@ function fillTable (race, weeks, spw, level, cross) {
     $('#planTitle').text(plan.title)
     $('#plan').append('<p>' + plan.description + '</p>')
     $('#plan').append('<p><a href="/plan?hash='+ plan.hash +'">Lien permanent vers ce plan</a></p>')
-
     $.each(plan.weeks, function (key, week) {
       const div = $('#plan').append('<div id="week-' + week.num + '"></div>')
       div.append('<h3 class="ui header"><i class="arrow alternate circle right outline icon"></i>Semaine ' + week.num + ' | ' + week.type + '</h3>')

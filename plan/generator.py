@@ -646,6 +646,14 @@ class TrainingPlan:
             "La deuxième partie est une préparation spécifique de %d "
             "semaines. " % self.spe_weeks
         )
+        desc.append(
+            "Les vitesses sont données à titre indicatif pour des"
+            " parcours plats et des conditions optimales (piste)."
+        )
+        desc.append(
+            "Il faut adapter sa vitesse en cas de dénivellé, de "
+            "terrain accidenté ou de surface lente type pelouse."
+        )
         res["description"] = "\n".join(desc)
         res["hash"] = self.small_hash.decode("utf8")
         return res
