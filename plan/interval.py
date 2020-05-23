@@ -1,21 +1,20 @@
 # encoding: utf8
 import random
-from plan.session import SessionType, WeekType
 
-
-def vma_percent(vma, percent=100):
-    return percent / 100 * vma
+from plan.sessiontype import SessionType
+from plan.week import WeekType
+from plan.utils import (
+    round_duration,
+    duration_to_str,
+    seconds_to_str,
+    speed_to_str,
+    join,
+    split,
+    vma_percent,
+)
 
 
 EASY, NORMAL, HARD = 1, 2, 3
-
-
-def _j(l, char="+"):
-    return char.join([str(i) for i in l])
-
-
-def _s(l, char="+"):
-    return l.split(char)
 
 
 names = [
@@ -61,7 +60,7 @@ class Repetition:
         self.speed = vma_percent(self.vma, self.vma_percent)
         self.recovery_speed = vma_percent(self.vma, 60)
         self.distance = self.distances[name][0]
-        self.duration = round(self.distance / self.speed * 3600)
+        self.duration = round_duration(self.distance / self.speed * 3600)
 
         recovery_coef = self.distances[name][level]
         # coef can be a % of the duration or a duration
@@ -75,7 +74,7 @@ class Repetition:
 
     @property
     def hash(self):
-        key = _j(
+        key = join(
             [
                 name2code(self.name),
                 self.type,
@@ -118,7 +117,7 @@ class Repetition:
         elif week_num == num_week - 1:
             repetitions *= coef[1]
 
-        instance = cls(race, type, vma, vmap, level, round(repetitions))
+        instance = cls(race, type, vma, vmap, level, round_duration(repetitions))
         return instance
 
     def __str__(self):
@@ -209,7 +208,7 @@ class SpeRepetition(Repetition):
 
 
 def repetition_from_hash(hash, session):
-    hash = _s(hash)
+    hash = split(hash)
     name = code2name(hash[0])
     type = int(hash[1])
     vmap = float(hash[2])
@@ -221,7 +220,9 @@ def repetition_from_hash(hash, session):
         klass = ExtensiveRepetition
     else:
         klass = SpeRepetition
-    return klass(session.race, name, session.vma, vmap, level, round(repetitions))
+    return klass(
+        session.race, name, session.vma, vmap, level, round_duration(repetitions)
+    )
 
 
 def pick_repetition(type, race, week_num, vma, week_type, num_weeks, level):
@@ -232,3 +233,76 @@ def pick_repetition(type, race, week_num, vma, week_type, num_weeks, level):
     else:
         klass = SpeRepetition
     return klass.pick(race, week_num, vma, week_type, num_weeks, level)
+
+
+class Interval:
+    def __init__(self, session, type):
+        self.vma = session.vma
+        self.session = session
+        self.repetitions = type.repetitions
+        self.type = type
+        # split in two
+        if self.repetitions > 8:
+            repetitions, remainder = divmod(self.repetitions, 2)
+            self.repetitions = [repetitions + remainder] * 2
+            self.between_duration = 2.0
+        else:
+            self.between_duration = 0.0
+            self.repetitions = (self.repetitions,)
+
+        self.duration = round_duration(
+            self.type.duration / 60 * sum(self.repetitions)
+            + self.type.recovery_duration / 60 * sum(self.repetitions)
+            + self.between_duration / 60
+        )
+        self.distance = (
+            self.type.distance * type.repetitions
+            + self.type.recovery_distance * sum(self.repetitions)
+        )
+
+    @property
+    def hash(self):
+        return "I" + join([self.type.hash], ";")
+
+    @classmethod
+    def from_hash(cls, hash, session):
+        hash = hash[1:]
+        hash = split(hash, ";")
+        type = repetition_from_hash(hash[0], session)
+        return cls(session, type)
+
+    def __str__(self):
+        if len(self.repetitions) == 1:
+            r = "%d x %s" % (self.repetitions[0], self.type)
+        else:
+            r = "2x(%d x %s) R=%s" % (
+                self.repetitions[0],
+                self.type,
+                duration_to_str(self.between_duration),
+            )
+
+        info = (
+            "Effort de %s à %skm/h.<br/>Contre-effort de %s à %skm/h.<br/>Durée totale de %s"
+            % (
+                seconds_to_str(self.type.duration),
+                speed_to_str(self.type.speed),
+                seconds_to_str(self.type.recovery_duration),
+                speed_to_str(self.type.recovery_speed),
+                duration_to_str(self.duration),
+            )
+        )
+
+        return """%s <i class="question circle icon" data-variation="mini inverted" data-html="%s"></i>
+           """ % (
+            r,
+            info,
+        )
+
+    def json(self):
+        return {
+            "repetitions": self.repetitions,
+            "type": str(self.type),
+            "recovery_speed": speed_to_str(self.type.recovery_speed),
+            "duration": duration_to_str(self.duration),
+            "distance": self.distance,
+        }

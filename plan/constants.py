@@ -1,0 +1,3 @@
+WARMUP = (60, 65)
+ENDURANCE = (65, 75)
+COOL_DOWN = (50, 65)
