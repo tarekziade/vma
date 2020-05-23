@@ -6,9 +6,10 @@ from plan.utils import split, join
 
 
 class TrainingPlan:
-    def __init__(self, race, vma, level, cross):
+    def __init__(self, race, runner, level, cross):
         self.race = race
-        self.vma = vma
+        self.runner = runner
+        self.vma = runner.vma
         self.level = level
         self.spw = None
         self.gen_weeks = None
