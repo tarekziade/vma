@@ -1,10 +1,15 @@
 
 function fillTable (race, weeks, spw, level, cross) {
-  const speed = getCookie('vma')
+  const speed = getCookie('vma');
+  const hrmax = getCookie('hrmax');
+  const gender = getCookie('gender');
+  const age = getCookie('age');
+
   $('#plan').empty()
 
   $.getJSON('/api/plan?vma=' + speed + '&race=' + race + '&weeks=' + weeks +
-         '&spw=' + spw + '&level=' + level + '&cross=' + cross,
+         '&spw=' + spw + '&level=' + level + '&cross=' + cross + '&hrmax=' + hrmax
+         + '&gender=' +  gender + '&age=' + age,
   function (data) {
     const plan = data.plan
 

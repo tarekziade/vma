@@ -12,5 +12,6 @@ class Person:
         self.vma = vma
         self.gender = gender
         if max_hr is None:
-            max_hr = 220 - age
+            # Gellish & Coll. 2007
+            max_hr = 191.5 - 0.007 * (age * age)
         self.max_hr = max_hr

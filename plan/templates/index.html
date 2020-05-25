@@ -21,8 +21,9 @@ calculs sont basés sur la connaissance de votre VMA.
       id="vmaForm" onsubmit="return false;"
       action="" method="post">
   <div class="field">
-    <label>VMA en km/h</label>
-    <select class="ui search dropdown" id="speedValue">
+    <label>Vitesse Maximum Aérobie</label>
+    <div class="ui right labeled input">
+      <select class="ui search dropdown" id="speedValue">
         <option value="12">12</option>
         <option value="12.5">12.5</option>
         <option value="13">13</option>
@@ -42,16 +43,51 @@ calculs sont basés sur la connaissance de votre VMA.
         <option value="20">20</option>
         <option value="20.5">20.5</option>
         <option value="21">21</option>
-    </select>
+      </select>
+      <div class="ui basic label">km/h</div>
+    </div>
   </div>
+  <div class="grouped fields">
+    <label>Genre</label>
+    <div class="field">
+      <div class="ui radio checkbox">
+        <input type="radio" name="gender" value="0" id="genderM" checked="checked">
+        <label>Homme</label>
+      </div>
+    </div>
+    <div class="field">
+      <div class="ui radio checkbox">
+        <input type="radio" name="gender" value="1" id="genderW">
+        <label>Femme</label>
+      </div>
+    </div>
+  </div>
+  <div class="field">
+    <label>Age</label>
+    <input type="text" name="age" id="age"/>
+  </div>
+  <div class="field">
+    <label>FC Max</label>
+    <div class="ui right labeled input">
+      <input type="text" name="hrmax" id="hrmax">
+      <div class="ui basic label">bpm</div>
+    </div>
+  </div>
+  <div class="field">
+    <div class="ui checkbox">
+      <input type="checkbox" name="nohrmax" id="hrnomax">
+      <label>FC Max théorique par age</label>
+    </div>
+  </div>
+</div>
 </form>
 </div>
 <div class="ui message">
 <p>
-Une fois la VMA saisie, voici les outils disponibles:
+Une fois les informations saisies, voici les outils disponibles:
 </p>
 <ul class="list">
-  <li><a href="/vma">Un tableau des allures et temps de passage</a></li>
+  <li><a href="/vma">Un tableau des zones, allures et temps de passage</a></li>
   <li><a href="/plan">Un générateur de plan</a></li>
   <li>Et pour plus d'information, <a href="/guide">un guide</a></li>
 </ul>
@@ -61,8 +97,8 @@ Une fois la VMA saisie, voici les outils disponibles:
   <div class="header">
     GPRD
   </div>
-  <p>Ce site stocke votre VMA et les paramètres du plan dans un cookie sur votre ordinateur.
-  Aucune infornation nest conservée sur le serveur.</p>
+  <p>Ce site stocke les informations saisies dans un cookie sur votre ordinateur.
+  Aucune infornation n'est conservée sur le serveur.</p>
 </div>
 
 {% endblock %}
@@ -70,28 +106,106 @@ Une fois la VMA saisie, voici les outils disponibles:
 
 {% block script %}
 <script language="javascript">
-$(document).ready(function(){
-    $("#speedValue").change(function(){
-        var vma = $(this).children("option:selected").val();
-        setCookie('vma', vma);
-        $('#speedValue').val(vma);
-        $('#vma').text(vma);
-    });
-    var vma = getCookie('vma');
-    $('#speedValue').val(vma);
+$(document).ready(function() {
 
-    var gprd = getCookie('gprd');
 
-    if (!gprd) {
-      let gprdMessage = $('#gprd');
-      if (gprdMessage.hasClass('hidden')){
-        gprdMessage.removeClass('hidden')
-        gprdMessage.addClass('visible');
-      } else {
-        gprdMessage.removeClass('visible')
-        gprdMessage.addClass('hidden');   
-      }
+
+  var gprd, vma, hrmax, age, gender;
+
+  function hrmaxFromAge(age) {
+    return Math.round(191.5 - 0.007 * (age * age));
+  }
+
+
+  function setFromCookie() {
+    vma = getCookie('vma');
+    if (!vma) {
+      vma  = 19;
     }
+    $('#speedValue').val(vma);
+    gprd = getCookie('gprd');
+    age = getCookie('age');
+    if (!age) {
+       age = 43;
+    }
+    $("#age").val(age);
+    hrmax = getCookie('hrmax');
+    if  (!hrmax) {
+      hrmax = hrmaxFromAge(age);
+    }
+    if (hrmax == hrmaxFromAge(age))  {
+      $("#hrmax").attr("disabled", true);
+      $("#hrnomax").prop("checked", true);
+    } else {
+      $("#hrmax").attr("disabled", false);
+      $("#hrnomax").prop("checked", false);
+    }
+    $("#hrmax").val(hrmax);
+
+    gender  = getCookie('gender');
+    if (gender) {
+       $("#genderM").prop("checked", gender == 0);
+       $("#genderW").prop("checked", gender != 0);
+    }
+  }
+
+  setFromCookie();
+
+  $("#speedValue").change(function(){
+      vma = $(this).children("option:selected").val();
+      setCookie('vma', vma);
+      $('#speedValue').val(vma);
+      $('#vma').text(vma);
+  });
+
+  if (!gprd) {
+    let gprdMessage = $('#gprd');
+    if (gprdMessage.hasClass('hidden')){
+      gprdMessage.removeClass('hidden')
+      gprdMessage.addClass('visible');
+    } else {
+      gprdMessage.removeClass('visible')
+      gprdMessage.addClass('hidden');
+    }
+  }
+
+  $("#hrnomax").change(function() {
+    var checked = $(this).prop("checked");
+    age = $("#age").val();
+    hrmax = hrmaxFromAge(age);
+    $("#hrmax").val(hrmax);
+    if (checked) {
+      $("#hrmax").attr("disabled", true);
+    } else {
+      $("#hrmax").attr("disabled", false);
+      $("#hrmax").select();
+    }
+    setCookie('hrmax', hrmax);
+  });
+
+  $("#hrmax").change(function(){
+    setCookie('hrmax', $(this).val());
+  });
+
+  $("#age").change(function(){
+    age = $(this).val();
+    setCookie('age', age);
+    if ($("#hrnomax").prop("checked")) {
+      hrmax = hrmaxFromAge(age);
+      $("#hrmax").val(hrmax);
+      setCookie('hrmax', hrmax);
+    }
+  });
+
+  function genderChange() {
+      gender = $(this).prop("value");
+      $("#genderM").prop("checked", gender == 0);
+      $("#genderW").prop("checked", gender != 0);
+      setCookie('gender', gender);
+  }
+
+  $("#genderM").change(genderChange);
+  $("#genderW").change(genderChange);
 
   $('.message .close')
   .on('click', function() {
@@ -99,8 +213,7 @@ $(document).ready(function(){
     $(this)
       .closest('.message')
       .transition('fade');
-  })
-;
+  });
 });
 
 </script>

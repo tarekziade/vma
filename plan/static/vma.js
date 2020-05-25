@@ -1,5 +1,6 @@
 var dataVMASpeed;
 var dataFractionne = [];
+var dataFC = [];
 
 var VMASpeedDatatable = jQuery('#VMASpeed').DataTable({
   paging: false,
@@ -22,6 +23,23 @@ var VMASpeedDatatable = jQuery('#VMASpeed').DataTable({
     { data: '105%' },
     { data: '110%' },
     { data: '115%' }
+  ]
+})
+
+var FCDatatable = jQuery('#FC').DataTable({
+  paging: false,
+  searching: false,
+  ordering: false,
+  info: false,
+  responsive: true,
+  data: dataVMASpeed,
+  columns: [
+    { data: 'Zones' },
+    { data: 'Z1' },
+    { data: 'Z2' },
+    { data: 'Z3' },
+    { data: 'Z4' },
+    { data: 'Z5' },
   ]
 })
 
@@ -111,6 +129,25 @@ function calculateFractionne (total, min, max, interval, distance, customLabel) 
   dataFractionne.push(dataFractionneLine)
 };
 
+
+function calculateFC() {
+  let hrmax = parseInt(getCookie("hrmax")) + 3;
+  let z1 = "<" + Math.round(hrmax * 0.7);
+  let z2 = Math.round(hrmax * 0.7) + " - " + Math.round(hrmax * 0.8);
+  let z3 = Math.round(hrmax * 0.8) + " - " + Math.round(hrmax * 0.9);
+  let z4 = Math.round(hrmax * 0.9) + " - " + Math.round(hrmax * 0.95);
+  let z5 = " > " + Math.round(hrmax * 0.95);
+
+  let desc = {Zones: "Description", Z1: "Echauffement", Z2: "Modéré", Z3: "Cadence", Z4: "Seuil", Z5: "Anaérobique"};
+  let values = {Zones: "Fourchette", Z1: z1, Z2: z2, Z3: z3, Z4: z4, Z5: z5};
+  dataFC.push(desc);
+  dataFC.push(values);
+
+
+};
+
+
+
 function init (mas) {
   const MAS = mas
   const masMs = MAS * 1000 / 3600
@@ -136,6 +173,8 @@ function init (mas) {
   calculateFractionne(total, 65, 115, 5, 42200, 'Marathon')
   // 100 km
   calculateFractionne(total, 65, 115, 5, 100000, '100 km')
+
+  calculateFC()
 }
 
 function pad (num) {
@@ -148,9 +187,15 @@ function validate () {
   var speed = getCookie('vma')
   VMASpeedDatatable.clear().draw()
   FractionneDatatable.clear().draw()
+  FCDatatable.clear().draw()
   init(speed)
   VMASpeedDatatable.rows.add(dataVMASpeed).draw()
   FractionneDatatable.rows.add(dataFractionne).draw()
+  FCDatatable.rows.add(dataFC).draw()
+  FCDatatable.cells(1, 2).nodes()[0].style.cssText = 'background-color: #87FF8D'
+  FCDatatable.cells(1, 3).nodes()[0].style.cssText = 'background-color: #FF9E61'
+  FCDatatable.cells(1, 4).nodes()[0].style.cssText = 'background-color: #FF8361'
+  FCDatatable.cells(1, 5).nodes()[0].style.cssText = 'background-color: #FF6961'
 
   // let's find out the speed of short intervals (95/100)
   //
