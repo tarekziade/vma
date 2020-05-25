@@ -149,7 +149,16 @@ $(document).ready(function() {
     }
   }
 
+  function updateCookie() {
+    setCookie('vma', vma);
+    setCookie('hrmax', hrmax);
+    setCookie('gender', gender);
+    setCookie('age', age);
+  }
+
   setFromCookie();
+  updateCookie();
+
 
   $("#speedValue").change(function(){
       vma = $(this).children("option:selected").val();
