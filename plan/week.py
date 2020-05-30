@@ -19,6 +19,7 @@ class Week:
         self.type = type
         self.spw = spw
         self.race = race
+        self.runner = plan.runner
         self.num = num
         self.plan = plan
         self.race_week = type == WeekType.SPECIFIC and num == plan.total_weeks

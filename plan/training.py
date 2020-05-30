@@ -3,6 +3,7 @@ import base64
 
 from plan.week import Week, WeekType
 from plan.utils import split, join
+from plan.person import Person
 
 
 class TrainingPlan:
@@ -27,13 +28,14 @@ class TrainingPlan:
     def from_hash(cls, hash):
         elements = split(hash)
         race = int(elements[0])
-        vma = float(elements[1])
-        level = float(elements[2])
-        cross = elements[3] == 1
-        plan = cls(race, vma, level, cross)
-        plan.spw = elements[3]
+        runner = Person.from_hash(elements[1])
+        vma = float(elements[2])
+        level = float(elements[3])
+        cross = elements[4] == 1
+        plan = cls(race, runner, level, cross)
+        plan.spw = elements[4]
         # ugly
-        weeks = [w.strip("[]") for w in join(elements[4:]).split("]+[")]
+        weeks = [w.strip("[]") for w in join(elements[5:]).split("]+[")]
         for num, week_hash in enumerate(weeks):
             plan.weeks.append(
                 Week.from_hash("[" + week_hash + "]", plan, num, type, plan.spw, race)
@@ -44,6 +46,7 @@ class TrainingPlan:
     def hash(self):
         key = [
             int(self.race),
+            self.runner.hash,
             self.vma,
             self.level,
             self.spw,

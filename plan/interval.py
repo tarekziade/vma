@@ -145,11 +145,12 @@ class IntensiveRepetition(Repetition):
 
 
 class ExtensiveRepetition(Repetition):
+    # distance, recovery easy, recovery normal, recovery hard
     distances = {
-        "400M": (0.4, 0.5, 0.4, 0.3),
-        "500M": (0.5, 0.5, 0.4, 0.3),
-        "600M": (0.6, 0.5, 0.4, 0.3),
-        "800M": (0.8, 0.5, 0.4, 0.3),
+        "400M": (0.4, 0.8, 0.7, 0.6),
+        "500M": (0.5, 0.8, 0.7, 0.6),
+        "600M": (0.6, 0.8, 0.7, 0.6),
+        "800M": (0.8, 0.8, 0.7, 0.6),
     }
 
     combo = {

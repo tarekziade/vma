@@ -12,6 +12,7 @@ class Session:
         self.type = type
         self.race = week.race
         self.week = week
+        self.runner = week.runner
         self.num = 0
         self.vma = week.plan.vma
         self.level = week.plan.level
@@ -46,7 +47,7 @@ class Session:
                 elif self.cross and type == SessionType.LONG_RUN and not week_pair:
                     self.core = Bike(duration * 1.5)
                 else:
-                    self.core = Continuous(self.vma, duration)
+                    self.core = Continuous(self.runner, self.vma, duration)
                 self.warmup = None
                 self.cool_down = None
         # interval or race
@@ -60,13 +61,13 @@ class Session:
                 else:
                     warmup_time = 25
 
-                self.warmup = Continuous(self.vma, warmup_time, WARMUP)
+                self.warmup = Continuous(self.runner, self.vma, warmup_time, WARMUP)
 
                 if self.week.race_week and type == self.race:
                     self.cool_down = None
-                    self.core = Continuous.for_race(self.vma, self.race)
+                    self.core = Continuous.for_race(self.runner, self.vma, self.race)
                 else:
-                    self.cool_down = Continuous(self.vma, 15, COOL_DOWN)
+                    self.cool_down = Continuous(self.runner, self.vma, 15, COOL_DOWN)
                     self.core = self._build_interval(coef)
 
         self.duration = self.core.duration
