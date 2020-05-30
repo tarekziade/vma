@@ -117,8 +117,7 @@ class Repetition:
         elif week_num == num_week - 1:
             repetitions *= coef[1]
 
-        instance = cls(race, type, vma, vmap, level, round_duration(repetitions))
-        return instance
+        return cls(race, type, vma, vmap, level, round(repetitions))
 
     def __str__(self):
         return self.name

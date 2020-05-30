@@ -1,5 +1,9 @@
 from enum import Enum
-from plan.utils import split, join
+from plan.utils import (
+    split,
+    join,
+    vma_to_speed,
+)
 
 
 class Gender(Enum):
@@ -36,3 +40,11 @@ class Runner:
         if intensity > 0.95:
             return intensity
         return self.max_hr * (intensity + 0.1)
+
+    def get_speed(self, intensity):
+        return vma_to_speed(self.vma, intensity)
+
+    def get_avg_speed(self, min_intensity, max_intensity):
+        speed_low = self.get_speed(min_intensity)
+        speed_high = self.get_speed(max_intensity)
+        return (speed_low + speed_high) / 2.0

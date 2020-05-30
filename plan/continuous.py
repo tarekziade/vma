@@ -2,23 +2,19 @@ from plan.utils import (
     speed_to_str,
     duration_to_str,
     round_duration,
-    vma_to_speed,
     distance_acceleration,
 )
 from plan.constants import ENDURANCE, WARMUP
 
 
 class Continuous:
-    def __init__(self, runner, vma, duration, intensity=ENDURANCE):
+    def __init__(self, runner, duration, intensity=ENDURANCE):
         self.duration = round_duration(duration)
-        # XXX should grab from runner
-        self.vma = vma
         self.runner = runner
         self.intensity = intensity
-        self.speed_low = vma_to_speed(vma, intensity[0])
-        self.speed_high = vma_to_speed(vma, intensity[1])
-        speed_avg = (self.speed_low + self.speed_high) / 2.0
-
+        self.speed_low = runner.get_speed(intensity[0])
+        self.speed_high = runner.get_speed(intensity[1])
+        speed_avg = runner.get_avg_speed(*intensity)
         if intensity == ENDURANCE:
             # 10mn acceleration
             warmup_distance = distance_acceleration(9.0, speed_avg, 10.0 / 60.0)
@@ -28,7 +24,6 @@ class Continuous:
         else:
             self.distance = self.duration / 60 * speed_avg
             self.core_duration = None
-
         self.max_fc = self.runner.get_max_fc(intensity[1])
 
     @property
@@ -51,17 +46,15 @@ class Continuous:
         else:
             intensity = WARMUP
         duration = float(hash[0])
-        return cls(session.runner, session.vma, duration, intensity)
+        return cls(session.runner, duration, intensity)
 
     @classmethod
-    def for_race(cls, runner, vma, race):
+    def for_race(cls, runner, race):
         intensity = race.intensity()
         distance = race.distance()
-        speed_low = vma_to_speed(vma, intensity[0])
-        speed_high = vma_to_speed(vma, intensity[1])
-        speed_avg = (speed_low + speed_high) / 2.0
+        speed_avg = runner.get_avg_speed(*intensity)
         duration = distance / speed_avg * 60
-        return cls(runner, vma, duration, intensity)
+        return cls(runner, duration, intensity)
 
     @property
     def title(self):

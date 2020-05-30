@@ -10,7 +10,6 @@ class TrainingPlan:
     def __init__(self, race, runner, level, cross):
         self.race = race
         self.runner = runner
-        self.vma = runner.vma
         self.level = level
         self.spw = None
         self.gen_weeks = None
@@ -29,9 +28,8 @@ class TrainingPlan:
         elements = split(hash)
         race = int(elements[0])
         runner = Runner.from_hash(elements[1])
-        vma = float(elements[2])
-        level = float(elements[3])
-        cross = elements[4] == 1
+        level = float(elements[2])
+        cross = elements[3] == 1
         plan = cls(race, runner, level, cross)
         plan.spw = elements[4]
         # ugly
@@ -47,7 +45,6 @@ class TrainingPlan:
         key = [
             int(self.race),
             self.runner.hash,
-            self.vma,
             self.level,
             self.spw,
             self.cross and "1" or "0",
