@@ -1,7 +1,7 @@
 # encoding: utf8
 from plan.bike import Bike
 from plan.utils import duration_to_str, speed_to_str
-from plan.continous import Continuous
+from plan.continuous import Continuous
 from plan.interval import Interval, pick_repetition, EASY, HARD
 from plan.sessiontype import SessionType
 from plan.constants import WARMUP, COOL_DOWN

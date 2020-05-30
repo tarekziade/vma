@@ -2,7 +2,7 @@
 from plan.session import SessionType
 from plan.training import TrainingPlan
 from plan.interval import NORMAL
-from plan.person import Person
+from plan.runner import Runner
 
 
 def plan(
@@ -15,7 +15,7 @@ def plan(
     age=43,
     max_hr=192,
 ):
-    runner = Person(age, vma, max_hr)
+    runner = Runner(age, vma, max_hr)
     training = TrainingPlan(race, runner, level, cross=cross)
     training.build(weeks, spw)
     return training

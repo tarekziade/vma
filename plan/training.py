@@ -3,7 +3,7 @@ import base64
 
 from plan.week import Week, WeekType
 from plan.utils import split, join
-from plan.person import Person
+from plan.runner import Runner
 
 
 class TrainingPlan:
@@ -28,7 +28,7 @@ class TrainingPlan:
     def from_hash(cls, hash):
         elements = split(hash)
         race = int(elements[0])
-        runner = Person.from_hash(elements[1])
+        runner = Runner.from_hash(elements[1])
         vma = float(elements[2])
         level = float(elements[3])
         cross = elements[4] == 1

@@ -7,7 +7,7 @@ class Gender(Enum):
     WOMAN = 1
 
 
-class Person:
+class Runner:
     def __init__(self, age, vma, gender=Gender.MAN, max_hr=None):
         self.age = age
         self.vma = vma
