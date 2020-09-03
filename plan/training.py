@@ -6,6 +6,18 @@ from plan.utils import split, join
 from plan.runner import Runner
 
 
+def hash_encode(hash):
+    hash = zlib.compress(hash.encode("utf8"), 9)
+    return base64.urlsafe_b64encode(hash).rstrip(b"=")
+
+
+def hash_decode(hash):
+    padding = 4 - (len(hash) % 4)
+    hash = hash + "=" * padding
+    hash = base64.urlsafe_b64decode(hash)
+    return zlib.decompress(hash).decode("utf8")
+
+
 class TrainingPlan:
     def __init__(self, race, runner, level, cross):
         self.race = race
@@ -20,8 +32,7 @@ class TrainingPlan:
 
     @classmethod
     def from_small_hash(cls, hash):
-        uncompressed = zlib.decompress(base64.b64decode(hash)).decode("utf8")
-        return cls.from_hash(uncompressed)
+        return cls.from_hash(hash_decode(hash))
 
     @classmethod
     def from_hash(cls, hash):
@@ -34,10 +45,22 @@ class TrainingPlan:
         plan.spw = elements[4]
         # ugly
         weeks = [w.strip("[]") for w in join(elements[5:]).split("]+[")]
+
+        plan.total_weeks = len(weeks)
+        plan.gen_weeks, rest = divmod(plan.total_weeks, 2)
+        plan.spe_weeks = plan.total_weeks - plan.gen_weeks + rest
+
         for num, week_hash in enumerate(weeks):
+            if num < plan.gen_weeks:
+                type = WeekType.GENERAL
+            else:
+                type = WeekType.SPECIFIC
             plan.weeks.append(
-                Week.from_hash("[" + week_hash + "]", plan, num, type, plan.spw, race)
+                Week.from_hash(
+                    "[" + week_hash + "]", plan, num + 1, type, plan.spw, race
+                )
             )
+
         return plan
 
     @property
@@ -55,7 +78,7 @@ class TrainingPlan:
 
     @property
     def small_hash(self):
-        return base64.b64encode(zlib.compress(self.hash.encode("utf8"), 9))
+        return hash_encode(self.hash)
 
     def __str__(self):
         res = ["Plan %s sur %d semaines" % (str(self.race), len(self.weeks))]

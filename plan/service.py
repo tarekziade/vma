@@ -15,7 +15,7 @@ static = os.path.join(here, "static")
 def api_plan():
     hash = request.params.get("hash")
     if hash is not None:
-        res = {"plan": plan_from_hash(hash=hash)}
+        res = {"plan": plan_from_hash(hash=hash).json()}
     else:
         vma = request.params.get("vma", 15)
         weeks = int(request.params.get("weeks", 8))
@@ -40,8 +40,12 @@ def api_plan():
 @route("/plan")
 @jinja2_view("plan.html", template_lookup=[templates])
 def _plan():
-    # chopper le hash
-    return {}
+    hash = request.params.get("hash")
+    if hash is not None:
+        res = {"plan": plan_from_hash(hash=hash)}
+    else:
+        res = {}
+    return res
 
 
 @route("/guide")

@@ -16,7 +16,7 @@ class Session:
         self.num = 0
         self.vma = self.runner.vma
         self.level = week.plan.level
-        self.coef = coef
+        self.coef = float(coef)
         self.cross = cross
 
         if session_builder is not None:
@@ -80,7 +80,6 @@ class Session:
             self.distance += self.cool_down.distance
 
         self.distance = round(self.distance * 2) / 2
-        self.week = week
 
     @classmethod
     def from_hash(cls, hash, week):
@@ -143,15 +142,19 @@ class Session:
         if self.type in (SessionType.ENDURANCE, SessionType.LONG_RUN):
             return "- Entraînement %d | %s | %s" % (self.num, self.type, duration)
         res = ["- Entraînement %d | %s | %s" % (self.num, self.type, duration)]
-        res += ["  - Echauffement | %s" % self.warmup]
+        if self.warmup:
+            res += ["  - Echauffement | %s" % self.warmup]
         res += ["  - %s" % self.core]
-        res += ["  - Retour au calme | %s" % self.cool_down]
+        if self.cool_down:
+            res += ["  - Retour au calme | %s" % self.cool_down]
         return "\n".join(res)
 
     # XXX crap
     def _to_html(self, *elements):
         res = "<ul>"
         for el in elements:
+            if el is None:
+                continue
             res += "<li>%s</li>" % el
         res += "</ul>"
         return res
@@ -169,7 +172,8 @@ class Session:
             else:
                 res["description"] = "Sortie vélo de " + str(self.core)
             return res
-        res["warmup"] = self.warmup.json()
+        if self.warmup:
+            res["warmup"] = self.warmup.json()
         res["cool_down"] = self.cool_down is not None and self.cool_down.json() or {}
         res["core"] = self.core.json()
         if self.cool_down is not None:

@@ -31,6 +31,7 @@ names = [
     "4000M",
     "5000M",
     "10000M",
+    "pyramid",
 ]
 
 
@@ -143,6 +144,109 @@ class IntensiveRepetition(Repetition):
     type = 1
 
 
+class VariableIntensiveRepetition(IntensiveRepetition):
+
+    variations = {
+        "pyramid": ["100M", "200M", "300M", "300M", "200M", "100M"],
+        "downup": ["300M", "200M", "100M", "100M", "200M", "300M"],
+    }
+
+    combo = {
+        SessionType.FIVE: {"100M": 110, "200M": 105, "300M": 100},
+        SessionType.TEN: {"100M": 110, "200M": 105, "300M": 100},
+        SessionType.HALF: {"100M": 110, "200M": 100, "300M": 95},
+        SessionType.MARATHON: {"100M": 105, "200M": 100, "300M": 95},
+    }
+    type = 11
+
+    def __init__(self, name, race, steps, vma, level=NORMAL):
+        self.race = race
+        self.steps = steps
+        self.vma = vma
+        self.level = level
+        self.name = name
+        self.recovery_speed = vma_percent(self.vma, 60)
+        self.repetitions = 2
+        self.between_duration = 2.0
+        self.between_duration_distance = 0.1
+
+    @property
+    def hash(self):
+        return "TODO"
+
+    def step_info(self, step):
+        (
+            distance,
+            speed,
+            duration,
+            recovery_speed,
+            recovery_distance,
+            recovery_duration,
+        ) = step
+        info = "%dM en %s à %skm/h.<br/>Contre-effort de %s à %skm/h." % (
+            distance * 1000,
+            seconds_to_str(duration),
+            speed_to_str(speed),
+            seconds_to_str(recovery_duration),
+            speed_to_str(recovery_speed),
+        )
+        return info
+
+    def get_totals(self):
+        total_distance = 0
+        total_duration = 0
+        for step in self.steps:
+            (
+                distance,
+                speed,
+                duration,
+                recovery_speed,
+                recovery_distance,
+                recovery_duration,
+            ) = step
+            total_distance += distance + recovery_distance
+            total_duration += duration + recovery_duration
+
+        total_distance = self.repetitions * (
+            total_distance + self.between_duration_distance
+        )
+        total_duration = self.repetitions * (total_duration + self.between_duration)
+        return total_distance, total_duration / 60
+
+    @classmethod
+    def pick(cls, race, week_num, vma, week_type, num_week, level):
+        variation_name = random.choice(list(cls.variations.keys()))
+        variation = cls.variations[variation_name]
+
+        steps = []
+        for step in variation:
+            distance, hard, medium, easy = cls.distances[step]
+            vmap = cls.combo[race][step]
+            speed = vma_percent(vma, vmap)
+            recovery_speed = vma_percent(vma, 60)
+            duration = round_duration(distance / speed * 3600)
+            if level == EASY:
+                recovery_coef = easy
+            elif level == NORMAL:
+                recovery_coef = medium
+            else:
+                recovery_coef = hard
+            recovery_duration = duration * recovery_coef
+            recovery_distance = recovery_speed * recovery_duration / 3600
+            steps.append(
+                (
+                    distance,
+                    speed,
+                    duration,
+                    recovery_speed,
+                    recovery_distance,
+                    recovery_duration,
+                )
+            )
+
+        return cls(variation_name, race, steps, vma, level)
+
+
 class ExtensiveRepetition(Repetition):
     # distance, recovery easy, recovery normal, recovery hard
     distances = {
@@ -227,7 +331,7 @@ def repetition_from_hash(hash, session):
 
 def pick_repetition(type, race, week_num, vma, week_type, num_weeks, level):
     if type == SessionType.INTENSIVE_INTERVALS:
-        klass = IntensiveRepetition
+        klass = random.choice([IntensiveRepetition] * 4 + [VariableIntensiveRepetition])
     elif type == SessionType.EXTENSIVE_INTERVALS:
         klass = ExtensiveRepetition
     else:
@@ -239,26 +343,31 @@ class Interval:
     def __init__(self, session, type):
         self.vma = session.vma
         self.session = session
-        self.repetitions = type.repetitions
         self.type = type
-        # split in two
-        if self.repetitions > 8:
-            repetitions, remainder = divmod(self.repetitions, 2)
-            self.repetitions = [repetitions + remainder] * 2
-            self.between_duration = 2.0
-        else:
-            self.between_duration = 0.0
-            self.repetitions = (self.repetitions,)
 
-        self.duration = round_duration(
-            self.type.duration / 60 * sum(self.repetitions)
-            + self.type.recovery_duration / 60 * sum(self.repetitions)
-            + self.between_duration / 60
-        )
-        self.distance = (
-            self.type.distance * type.repetitions
-            + self.type.recovery_distance * sum(self.repetitions)
-        )
+        if isinstance(type, VariableIntensiveRepetition):
+            self.repetitions = type.repetitions
+            self.distance, self.duration = type.get_totals()
+        else:
+            self.repetitions = type.repetitions
+            # split in two
+            if self.repetitions > 8:
+                repetitions, remainder = divmod(self.repetitions, 2)
+                self.repetitions = [repetitions + remainder] * 2
+                self.between_duration = 2.0
+            else:
+                self.between_duration = 0.0
+                self.repetitions = (self.repetitions,)
+
+            self.duration = round_duration(
+                self.type.duration / 60 * sum(self.repetitions)
+                + self.type.recovery_duration / 60 * sum(self.repetitions)
+                + self.between_duration / 60
+            )
+            self.distance = (
+                self.type.distance * type.repetitions
+                + self.type.recovery_distance * sum(self.repetitions)
+            )
 
     @property
     def hash(self):
@@ -272,25 +381,41 @@ class Interval:
         return cls(session, type)
 
     def __str__(self):
-        if len(self.repetitions) == 1:
-            r = "%d x %s" % (self.repetitions[0], self.type)
+        if isinstance(self.type, VariableIntensiveRepetition):
+            distances = [step[0] * 1000 for step in self.type.steps]
+            if self.type.repetitions == 1:
+                r = "-".join("%dM" % distance for distance in distances)
+            else:
+                r = (
+                    "%dx(" % self.type.repetitions
+                    + "-".join("%dM" % distance for distance in distances)
+                    + ") R=%s" % (duration_to_str(self.type.between_duration))
+                )
+            info = [self.type.step_info(step) for step in self.type.steps]
+            info.append(
+                "Durée totale de %s" % duration_to_str(self.type.get_totals()[1])
+            )
+            info = "<br/>".join(info)
         else:
-            r = "2x(%d x %s) R=%s" % (
-                self.repetitions[0],
-                self.type,
-                duration_to_str(self.between_duration),
-            )
+            if len(self.repetitions) == 1:
+                r = "%d x %s" % (self.repetitions[0], self.type)
+            else:
+                r = "2x(%d x %s) R=%s" % (
+                    self.repetitions[0],
+                    self.type,
+                    duration_to_str(self.between_duration),
+                )
 
-        info = (
-            "Effort de %s à %skm/h.<br/>Contre-effort de %s à %skm/h.<br/>Durée totale de %s"
-            % (
-                seconds_to_str(self.type.duration),
-                speed_to_str(self.type.speed),
-                seconds_to_str(self.type.recovery_duration),
-                speed_to_str(self.type.recovery_speed),
-                duration_to_str(self.duration),
+            info = (
+                "Effort de %s à %skm/h.<br/>Contre-effort de %s à %skm/h.<br/>Durée totale de %s"
+                % (
+                    seconds_to_str(self.type.duration),
+                    speed_to_str(self.type.speed),
+                    seconds_to_str(self.type.recovery_duration),
+                    speed_to_str(self.type.recovery_speed),
+                    duration_to_str(self.duration),
+                )
             )
-        )
 
         return """%s <i class="question circle icon" data-variation="mini inverted" data-html="%s"></i>
            """ % (
